@@ -5,7 +5,13 @@ import string
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent", logger=True, engineio_logger=True)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent", 
+                  logger=True, engineio_logger=True,
+                  ping_timeout=60, ping_interval=25)  # Prevents timeouts
+
+@app.route('/ping')
+def ping():
+    return "WebSocket OK", 200
 
 @app.route('/')
 def index():
