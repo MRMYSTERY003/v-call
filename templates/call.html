@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voice Call - Room {{ room_id }}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen text-white">
+    <div class="container mx-auto px-4 py-8">
+        <div class="flex justify-between items-center mb-8">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-phone-alt text-indigo-400"></i>
+                <h1 class="text-2xl font-bold">Room: <span id="roomIdDisplay" class="text-indigo-400">{{ room_id }}</span></h1>
+            </div>
+            <button id="copyBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
+                <i class="far fa-copy"></i>
+                <span>Copy Link</span>
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+            <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <h2 class="text-xl font-semibold mb-4 flex items-center space-x-2">
+                    <i class="fas fa-user text-indigo-400"></i>
+                    <span>You</span>
+                </h2>
+                <div id="localAudioContainer" class="flex items-center justify-center h-32 bg-gray-700 rounded-lg mb-4">
+                    <i class="fas fa-microphone text-3xl text-gray-500"></i>
+                </div>
+                <div class="flex space-x-4">
+                    <button id="startBtn" class="flex-1 bg-green-600 hover:bg-green-500 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
+                        <i class="fas fa-phone"></i>
+                        <span>Start Call</span>
+                    </button>
+                    <button id="endBtn" class="flex-1 bg-red-600 hover:bg-red-500 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2" disabled>
+                        <i class="fas fa-phone-slash"></i>
+                        <span>End Call</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
+                <h2 class="text-xl font-semibold mb-4 flex items-center space-x-2">
+                    <i class="fas fa-users text-indigo-400"></i>
+                    <span>Participants</span>
+                    <span id="participantCount" class="bg-indigo-600 text-white text-sm px-2 py-1 rounded-full">0</span>
+                </h2>
+                <div id="remoteAudioContainer" class="space-y-4">
+                    <div class="bg-gray-700 rounded-lg p-4 flex items-center">
+                        <div class="flex-1">
+                            <div class="flex items-center space-x-3">
+                                <i class="fas fa-user text-indigo-400"></i>
+                                <span>Waiting for participants...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="status" class="bg-gray-800 rounded-lg p-4 text-center">
+            <div class="flex items-center justify-center space-x-2">
+                <i class="fas fa-info-circle text-indigo-400"></i>
+                <span>Ready to connect to room {{ room_id }}</span>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // This script will run before main.js
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('copyBtn').addEventListener('click', () => {
+                const roomId = "{{ room_id }}";
+                const url = `${window.location.origin}/call/${roomId}`;
+                navigator.clipboard.writeText(url).then(() => {
+                    const copyBtn = document.getElementById('copyBtn');
+                    const originalHtml = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
+                    setTimeout(() => {
+                        copyBtn.innerHTML = originalHtml;
+                    }, 2000);
+                });
+            });
+    
+            // Update UI with room ID
+            document.getElementById('roomIdDisplay').textContent = "{{ room_id }}";
+        });
+    </script>
+
+    <script src="/static/js/main.js"></script>
+
+</body>
+</html>
