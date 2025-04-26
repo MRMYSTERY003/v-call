@@ -7,6 +7,24 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        #pushToTalkBtn {
+            transition: all 0.2s ease;
+        }
+        #pushToTalkBtn.active {
+            background-color: #16a34a; /* green-600 */
+            transform: scale(1.1);
+            box-shadow: 0 0 20px rgba(22, 163, 74, 0.5);
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+        }
+        #pushToTalkBtn.active {
+            animation: pulse 1.5s infinite;
+        }
+    </style>
 </head>
 <body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen text-white">
     <div class="container mx-auto px-4 py-8">
@@ -30,16 +48,6 @@
                 <div id="localAudioContainer" class="flex items-center justify-center h-32 bg-gray-700 rounded-lg mb-4">
                     <i class="fas fa-microphone text-3xl text-gray-500"></i>
                 </div>
-                <div class="flex space-x-4">
-                    <button id="startBtn" class="flex-1 bg-green-600 hover:bg-green-500 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2">
-                        <i class="fas fa-phone"></i>
-                        <span>Start Call</span>
-                    </button>
-                    <button id="endBtn" class="flex-1 bg-red-600 hover:bg-red-500 px-4 py-3 rounded-lg font-medium transition-colors flex items-center justify-center space-x-2" disabled>
-                        <i class="fas fa-phone-slash"></i>
-                        <span>End Call</span>
-                    </button>
-                </div>
             </div>
 
             <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
@@ -61,16 +69,22 @@
             </div>
         </div>
 
-        <div id="status" class="bg-gray-800 rounded-lg p-4 text-center">
+        <!-- Push to Talk Button -->
+        <div class="fixed bottom-16 left-0 right-0 flex justify-center">
+            <button id="pushToTalkBtn" class="w-16 h-16 rounded-full bg-yellow-600 hover:bg-yellow-500 flex items-center justify-center shadow-xl transition-all">
+                <i class="fas fa-microphone text-2xl"></i>
+            </button>
+        </div>
+
+        <div id="status" class="bg-gray-800 rounded-lg p-4 text-center mb-20">
             <div class="flex items-center justify-center space-x-2">
                 <i class="fas fa-info-circle text-indigo-400"></i>
-                <span>Ready to connect to room {{ room_id }}</span>
+                <span>Connecting...</span>
             </div>
         </div>
     </div>
 
     <script>
-        // This script will run before main.js
         document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('copyBtn').addEventListener('click', () => {
                 const roomId = "{{ room_id }}";
@@ -85,12 +99,10 @@
                 });
             });
     
-            // Update UI with room ID
             document.getElementById('roomIdDisplay').textContent = "{{ room_id }}";
         });
     </script>
 
     <script src="/static/js/main.js"></script>
-
 </body>
 </html>
