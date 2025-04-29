@@ -365,12 +365,6 @@ function endCall() {
     updateParticipantCount(0);
 }
 
-// Helpful for debugging
-peerConnection.addEventListener('signalingstatechange', () => 
-    console.log('Signaling state changed to:', peerConnection.signalingState));
-
-peerConnection.addEventListener('iceconnectionstatechange', () => 
-    console.log('ICE connection state:', peerConnection.iceConnectionState));
 
 // Initialize call when socket connects
 socket.on('connect', () => {
