@@ -4,6 +4,8 @@ const socket = io("https://v-call-nb7m.onrender.com", {
 let peerConnection;
 const roomId = window.location.pathname.split('/').pop();
 let pushToTalkActive = false;
+let isSettingRemoteAnswer = false;
+let pendingAnswer = null;
 
 // DOM Elements
 const status = document.getElementById('status');
@@ -175,7 +177,20 @@ async function initializeCall() {
         
         // Create peer connection
         peerConnection = new RTCPeerConnection(config);
-        
+
+
+        peerConnection.onsignalingstatechange = () => {
+        console.log('Signaling state:', peerConnection.signalingState);
+        if (peerConnection.signalingState === 'stable' && pendingAnswer) {
+            const answer = pendingAnswer;
+            pendingAnswer = null;
+            setTimeout(() => {
+                peerConnection.setRemoteDescription(new RTCSessionDescription(answer))
+                    .catch(e => console.error('Pending answer error:', e));
+            }, 100);
+        }
+    };
+            
         // Add local stream tracks to connection
         localStream.getTracks().forEach(track => {
             peerConnection.addTrack(track, localStream);
@@ -260,7 +275,8 @@ async function initializeCall() {
 
         // Create and send offer
         const offer = await peerConnection.createOffer({
-            offerToReceiveAudio: true
+            offerToReceiveAudio: true,
+            iceRestart: false // Prevent unnecessary renegotiation
         });
         await peerConnection.setLocalDescription(offer);
         
@@ -349,6 +365,13 @@ function endCall() {
     updateParticipantCount(0);
 }
 
+// Helpful for debugging
+peerConnection.addEventListener('signalingstatechange', () => 
+    console.log('Signaling state changed to:', peerConnection.signalingState));
+
+peerConnection.addEventListener('iceconnectionstatechange', () => 
+    console.log('ICE connection state:', peerConnection.iceConnectionState));
+
 // Initialize call when socket connects
 socket.on('connect', () => {
     socket.emit('join', { room: roomId });
@@ -360,14 +383,30 @@ socket.on('answer', async (data) => {
     if (data.sender === socket.id || !peerConnection) return;
     
     try {
+        // Check current signaling state
+        if (peerConnection.signalingState !== 'have-local-offer') {
+            console.warn('Wrong state for answer:', peerConnection.signalingState);
+            pendingAnswer = data.answer; // Store for later
+            return;
+        }
+
+        isSettingRemoteAnswer = true;
         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.answer));
+        isSettingRemoteAnswer = false;
+        
+        // Process any pending candidates
+        if (pendingAnswer) {
+            const answer = pendingAnswer;
+            pendingAnswer = null;
+            await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
+        }
+        
         updateStatus('fas fa-check-circle', 'Connected! Push to talk', 'text-green-400');
     } catch (err) {
         console.error('Error handling answer:', err);
         updateStatus('fas fa-exclamation-circle', 'Error connecting', 'text-red-400');
     }
 });
-
 // Handle ICE candidates
 socket.on('candidate', async (data) => {
     if (data.sender === socket.id || !peerConnection) return;
