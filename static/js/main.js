@@ -1,10 +1,13 @@
-// const socket = io();
-const socket = io("https://v-call-nb7m.onrender.com", {
-    transports: ["websocket"]
-  })
+const socket = io();
+// const socket = io("https://v-call-nb7m.onrender.com", {
+//     transports: ["websocket"]
+//   })dis
 let localStream;
 let peerConnection;
 const roomId = window.location.pathname.split('/').pop();
+
+// Add this at the top of your main.js
+let currentParticipants = 0;
 
 // State tracking variables
 let isSettingRemoteAnswer = false;
@@ -156,6 +159,26 @@ function setupPushToTalk() {
 // Initialize call
 async function initializeCall() {
     try {
+
+
+        // First check room status
+        const response = await fetch(`/check_room/${roomId}`);
+        const roomStatus = await response.json();
+        
+        if (!roomStatus.can_join) {
+            updateStatus('fas fa-users', 'Room is full (2/2 participants)', 'text-red-400');
+            remoteAudioContainer.innerHTML = `
+                <div class="text-center p-4 bg-gray-700 rounded-lg">
+                    <i class="fas fa-users-slash text-red-400 text-4xl mb-2"></i>
+                    <p class="text-lg">This room is already full with 2 participants.</p>
+                    <p class="text-sm text-gray-300">Try creating a new room or join later.</p>
+                </div>
+            `;
+            return;
+        }
+
+
+
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         
         peerConnection = new RTCPeerConnection(config);
@@ -177,6 +200,7 @@ async function initializeCall() {
             if (peerConnection.iceConnectionState === 'disconnected') {
                 updateStatus('fas fa-exclamation-triangle', 'Disconnected', 'text-red-400');
                 endCall();
+                location.reload();
             }
         };
 
@@ -260,6 +284,52 @@ async function initializeCall() {
     }
 }
 
+
+// Add this handler for room full event
+socket.on('room_full', () => {
+    updateStatus('fas fa-users', 'Room is full (2/2 participants)', 'text-red-400');
+    remoteAudioContainer.innerHTML = `
+        <div class="text-center p-4 bg-gray-700 rounded-lg">
+            <i class="fas fa-users-slash text-red-400 text-4xl mb-2"></i>
+            <p class="text-lg">This room is already full with 2 participants.</p>
+            <p class="text-sm text-gray-300">Try creating a new room or join later.</p>
+        </div>
+    `;
+    
+    // Clean up if already started
+    endCall();
+});
+
+socket.on('participant_update', (data) => {
+    currentParticipants = data.count;
+    updateParticipantCount(currentParticipants);
+    
+    if (currentParticipants >= 2) {
+        // Update UI to show room is full
+        document.getElementById('roomStatus').textContent = 'Room is full (2/2)';
+    }
+});
+
+
+socket.on('participant_left', (data) => {
+    currentParticipants = data.count;
+    updateParticipantCount(currentParticipants);
+    
+    if (currentParticipants < 2) {
+        document.getElementById('roomStatus').textContent = `Participants: ${currentParticipants}/2`;
+    }
+    
+    // If we're the only one left, show appropriate message
+    if (currentParticipants === 1) {
+        remoteAudioContainer.innerHTML = `
+            <div class="text-center p-4 bg-gray-700 rounded-lg">
+                <i class="fas fa-user-clock text-yellow-400 text-4xl mb-2"></i>
+                <p class="text-lg">Waiting for another participant to join...</p>
+            </div>
+        `;
+    }
+});
+
 // Handle incoming offers
 socket.on('offer', async (data) => {
     if (data.sender === socket.id) return;
@@ -324,9 +394,12 @@ socket.on('candidate', async (data) => {
 
 // Update participant count
 function updateParticipantCount(count) {
-    participantCount.textContent = count;
+    currentParticipants = count;
+    participantCount.textContent = `${count}/2`;
+    
+    // You might want to add this to your HTML:
+    // <div id="roomStatus" class="text-sm text-gray-300">Participants: 1/2</div>
 }
-
 // End call
 function endCall() {
     if (peerConnection) {
