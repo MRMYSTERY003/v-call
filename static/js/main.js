@@ -1,7 +1,20 @@
 //const socket = io();
-const socket = io("https://v-call-nb7m.onrender.com", {
-    transports: ["websocket"]
-  });
+const socket =  io(window.location.origin, {
+  path: "/socket.io",
+  transports: ["pooling", "websocket"],
+  withCredentials: true,
+  extraHeaders: {
+    "my-custom-header": "abcd"
+  }
+});
+
+// If still failing after 5 seconds, show error
+setTimeout(() => {
+  if (!socket.connected) {
+    updateStatus('fas fa-unlink', 'Connection issues - try refreshing', 'text-red-400');
+  }
+}, 5000);
+
 let localStream;
 let peerConnection;
 const roomId = window.location.pathname.split('/').pop();
