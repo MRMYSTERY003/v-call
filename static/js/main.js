@@ -469,7 +469,7 @@ socket.on('candidate', async (data) => {
 // Update participant count
 function updateParticipantCount(count) {
     currentParticipants = count;
-    participantCount.textContent = `${count}/2`;
+    // participantCount.textContent = `${count}/2`;
     console.log('updated Participant count:', count);
     
     // You might want to add this to your HTML:
