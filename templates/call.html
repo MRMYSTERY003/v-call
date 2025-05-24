@@ -3,106 +3,451 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Voice Call - Room {{ room_id }}</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>E Walkie Talkie - Room</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Inconsolata:wght@500&family=Inter:wght@500&family=Orbitron:wght@600&display=swap" rel="stylesheet">
     <style>
-        #pushToTalkBtn {
-            transition: all 0.2s ease;
+        :root {
+            --dark-bg: #0B0B17;
+            --card-bg: #1A1A2E;
+            --card-border: #8E44AD;
+            --header-gradient-start: #8E44AD;
+            --header-gradient-end: #C0392B;
+            --text-primary: #FFFFFF;
+            --text-accent: #FF5722;
+            --audio-meter: #2ECC71;
+            --control-gradient-start: #9B59B6;
+            --control-gradient-end: #8E44AD;
+            --avatar-bg: #44475A;
+            --audio-track: #2E2E3F;
         }
-        #pushToTalkBtn.active {
-            background-color: #16a34a; /* green-600 */
-            transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(22, 163, 74, 0.5);
+
+    body {
+        background-color: var(--dark-bg);
+        background-image: url("{{ url_for('static', filename='img/bg.jpg') }}");
+        background-position: center bottom; /* ✅ Centered horizontally */
+        background-repeat: no-repeat;
+        background-size: auto; /* Or use cover/contain as needed */
+        
+        color: var(--text-primary);
+        font-family: 'Inter', sans-serif;
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        position: relative;
+        overflow-x: hidden;
+        display: flex;
+        justify-content: space-around;
+        flex-direction: column;
+    }
+
+        /* Background Glows */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            width: 50vw;
+            height: 50vh;
+            border-radius: 50%;
+            filter: blur(100px);
+            z-index: -1;
         }
-        @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(22, 163, 74, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(22, 163, 74, 0); }
+
+        body::before {
+            background: rgba(30, 30, 50, 0.7);
+            left: -25vw;
+            top: -25vh;
         }
-        #pushToTalkBtn.active {
-            animation: pulse 1.5s infinite;
+
+        body::after {
+            background: rgba(80, 30, 60, 0.6);
+            right: -25vw;
+            top: -25vh;
         }
+
+        /* .bg{
+            background-image: url("../img/bg.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+        } */
+
+
+        /* Particles */
+        .particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        .particle {
+            position: absolute;
+            background-color: rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+        }
+
+        /* Illustration */ 
+        .illustration {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            max-height: 50vh;
+            object-fit: contain;
+            z-index: -1;
+        }
+
+        /* Header */
+        .header {
+            position: absolute;
+            top: 32px;
+            left: 32px;
+        }
+
+        .logo {
+            font-family: 'Audiowide', cursive;
+            font-weight: 700;
+            font-size: 24px;
+            margin-bottom: 32px;
+        }
+
+        .room-id {
+            font-family: 'Inconsolata', monospace;
+            font-weight: 500;
+            font-size: 18px;
+            color: var(--text-accent);
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            top: 32px;
+            right: 32px;
+            display: flex;
+            gap: 16px;
+        }
+
+        .control-btn {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: var(--text-primary);
+        }
+
+        /* Participant Cards */
+        .participants-container {
+            display: flex;
+            justify-content: center;
+            gap: 32px;
+            margin-bottom: 100px;
+
+        }
+
+        .participant-card {
+      background: linear-gradient(135deg, #7C3AED, #EC4899);
+      border-radius: 16px;
+      padding: 2px;               /* thickness of the gradient border */
+      display: inline-block;
+    }
+
+    /* inner card */
+    .participant-card .card-inner {
+      background-color: #1F1F2E;
+      border-radius: 14px;
+      overflow: hidden;
+      width: 320px;
+      color: #FFF;
+      font-family: sans-serif;
+    }
+
+    /* header */
+    .participant-card .card-header {
+      background-color: #7C3AED;
+      padding: 8px 16px;
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    /* content area */
+    .participant-card .card-content {
+      padding: 16px;
+    }
+
+    .participant-card .l1 {
+      display: flex;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .participant-card .avatar {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      overflow: hidden;
+      margin-right: 12px;
+      background-color: #333;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .participant-card .avatar img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .participant-card .name {
+      font-size: 16px;
+      font-weight: 500;
+    }
+
+    /* audio meter */
+    .participant-card .audio-meter {
+      width: 100%;
+      height: 8px;
+      background-color: #374151;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .participant-card .audio-level {
+      height: 100%;
+      background-color: #10B981;
+      border-radius: 4px 0 0 4px;
+      width: 70%; /* or controlled dynamically via JS */
+      transition: width 0.1s ease-out;
+    }
+
+        /* Voice Control */
+        .voice-control {
+            position: fixed;
+            bottom: 80px;
+            left: 49%;
+            transform: translateX(-50%);
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: linear-gradient(to bottom, var(--control-gradient-start), var(--control-gradient-end));
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+
+        .voice-control:hover {
+            transform: translateX(-50%) scale(1.05);
+        }
+
+        .voice-control:active {
+            transform: translateX(-50%) scale(0.95);
+        }
+
+        .status-cnt {
+            display: flex;
+            justify-content: center; /* Horizontally centers the inner div */
+        }
+
+        #status {
+            text-align: center; /* Centers the icon and text inside the div */
+        }
+
+        /* Responsive */
+        @media (max-width: 1439px) {
+            .participant-card {
+                width: 300px;
+            }
+            .voice-control {
+                width: 80px;
+                height: 80px;
+            }
+        }
+
+        @media (max-width: 1023px) {
+
+                body {
+                    background-image: url("{{ url_for('static', filename='img/ph-bg.svg') }}");         /* Remove background image */
+                    background-color: var(--dark-bg); /* Optional: ensure dark background still shows */
+                background-size: cover;   /* fills entire area, may crop */
+                background-size: contain;              }
+
+            .participants-container {
+                margin-top: 120px;
+                flex-direction: column;
+                align-items: center;
+                gap: 24px;
+            }
+            .voice-control {
+                position: relative;
+                bottom: auto;
+                left: auto;
+                transform: none;
+                margin: 48px auto;
+            }
+
+            .participant-card {
+                margin-top: 20px;
+            }
+            .participant-card .card-inner {
+            background-color: #1F1F2E;
+            border-radius: 14px;
+            overflow: hidden;
+            width: 300px;
+            color: #FFF;
+            font-family: sans-serif;
+            }
+
+
+
+        }
+
+
+
     </style>
 </head>
-<body class="bg-gradient-to-br from-gray-900 to-gray-800 min-h-screen text-white">
-    <div class="container mx-auto px-4 py-8">
-        <div class="flex justify-between items-center mb-8">
-            <div class="flex items-center space-x-2">
-                <i class="fas fa-phone-alt text-indigo-400"></i>
-                <h1 class="text-2xl font-bold">Room: <span id="roomIdDisplay" class="text-indigo-400">{{ room_id }}</span></h1>
-            </div>
-            <button id="copyBtn" class="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded-lg transition-colors flex items-center space-x-2">
-                <i class="far fa-copy"></i>
-                <span>Copy Link</span>
+    <body class="bg-image">
+
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">E Walkie Talkie</div>
+            <div class="room-id">Room id : <span id="roomIdDisplay">{{ room_id }}</span></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls">
+            <button class="control-btn" id="exit" aria-label="Exit room">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+            </button>
+            <button class="control-btn" id="copyBtn" aria-label="Share room">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="8" y="8" width="12" height="12" rx="2"></rect>
+                    <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"></path>
+                </svg>
             </button>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 flex items-center space-x-2">
-                    <i class="fas fa-user text-indigo-400"></i>
-                    <span>You</span>
-                </h2>
-                <div id="localAudioContainer" class="flex items-center justify-center h-32 bg-gray-700 rounded-lg mb-4">
-                    <i class="fas fa-microphone text-3xl text-gray-500"></i>
-                </div>
-            </div>
 
-            <div class="bg-gray-800 rounded-xl p-6 shadow-lg">
-                <h2 class="text-xl font-semibold mb-4 flex items-center space-x-2">
-                    <i class="fas fa-users text-indigo-400"></i>
-                    <span>Participants</span>
-                    <span id="participantCount" class="bg-indigo-600 text-white text-sm px-2 py-1 rounded-full">0</span>
-                </h2>
-                <div id="remoteAudioContainer" class="space-y-4">
-                    <div class="bg-gray-700 rounded-lg p-4 flex items-center">
-                        <div class="flex-1">
-                            <div class="flex items-center space-x-3">
-                                <i class="fas fa-user text-indigo-400"></i>
-                                <span>Waiting for participants...</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+    <!-- Participants -->
+    <div class="participants-container grid grid-cols-1 md:grid-cols-2 gap-6 px-6">
+
+        <!-- You -->
+    <div class="participant-card">
+        <div class="card-inner">
+        <div class="card-header">You</div>
+        <div class="card-content">
+            <div class="l1">
+            <div class="avatar">
+                <img src="{{ url_for('static', filename='img/profile.svg') }}"  alt="Avatar">
+            </div>
+            <div class="name">You</div>
+            </div>
+            <div class="audio-meter">
+            <div class="audio-level" id="localAudioLevel" style="width: 70%;"></div>
             </div>
         </div>
-
-        <!-- Push to Talk Button -->
-        <div class="fixed bottom-16 left-0 right-0 flex justify-center">
-            <button id="pushToTalkBtn" class="w-16 h-16 rounded-full bg-yellow-600 hover:bg-yellow-500 flex items-center justify-center shadow-xl transition-all">
-                <i class="fas fa-microphone text-2xl"></i>
-            </button>
         </div>
+    </div>
 
-        <div id="status" class="bg-gray-800 rounded-lg p-4 text-center mb-20">
-            <div class="flex items-center justify-center space-x-2">
-                <i class="fas fa-info-circle text-indigo-400"></i>
-                <span>Connecting...</span>
+
+        <!-- Participants Panel -->
+        <div class="participant-card">
+            <div id="remoteAudioContainer" class="space-y-4">
+
+        <!-- <div class="participant-card">
+            <div class="card-inner">
+            <div class="card-header" id="roomStatus">
+                <span>Participants</span>
+                <span id="participantCount">1/2</span></div>
+            <div class="card-content" id="remort-card-content">
+                <div class="l1">
+                <div class="avatar">
+                    <img src="{{ url_for('static', filename='img/profile.svg') }}"  alt="Avatar">
+                </div>
+                <div class="name">${userId.slice(0, 4)}</div>
+                </div>
+                <div class="audio-meter">
+                <div class="audio-level" id="remoteAudioLevel" style="width: 70%;"></div>
+                </div>
+            </div>
+            </div>
+        </div> -->
             </div>
         </div>
     </div>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('copyBtn').addEventListener('click', () => {
-                const roomId = "{{ room_id }}";
-                const url = `${window.location.origin}/call/${roomId}`;
-                navigator.clipboard.writeText(url).then(() => {
-                    const copyBtn = document.getElementById('copyBtn');
-                    const originalHtml = copyBtn.innerHTML;
-                    copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
-                    setTimeout(() => {
-                        copyBtn.innerHTML = originalHtml;
-                    }, 2000);
-                });
-            });
+    <!-- Voice Control -->
+    <button class="voice-control" id="pushToTalkBtn" aria-label="Voice control">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+            <line x1="12" y1="19" x2="12" y2="23"></line>
+            <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+    </button>
     
-            document.getElementById('roomIdDisplay').textContent = "{{ room_id }}";
-        });
-    </script>
+    
+    
+    <!-- Hidden Controls -->
+    <div id="creator-controls" class="hidden"></div>
+    <div id="participant-list" class="hidden"></div>
+    <!-- <div class="status-cnt"  class="hidden">
+        <div id="status">
+            <i class="fas fa-info-circle"></i>
+            <span>Connecting...</span>
+        </div>
+    </div> -->
 
-    <script src="/static/js/main.js"></script>
-</body>
+    <!-- <div id="localUser" class="hidden user-display">
+        <span class="user-id"></span>
+        <span class="badge">You</span>
+        <span class="badge creator">Creator</span>
+    </div> -->
+
+
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                document.getElementById('copyBtn').addEventListener('click', () => {
+                    const roomId = "{{ room_id }}";
+                    const url = `${window.location.origin}/call/${roomId}`;
+                    navigator.clipboard.writeText(url).then(() => {
+                        const copyBtn = document.getElementById('copyBtn');
+                        const originalHtml = copyBtn.innerHTML;
+                        copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
+                        setTimeout(() => {
+                            copyBtn.innerHTML = originalHtml;
+                        }, 2000);
+                    });
+                });
+        
+                document.getElementById('roomIdDisplay').textContent = "{{ room_id }}";
+            });
+
+
+            document.getElementById('exit').addEventListener('click', () => {
+                window.location.href = '/';
+            });
+
+ const profileImgUrl = "{{ url_for('static', filename='img/profile.svg') }}";
+
+        </script>
+
+        <script src="/static/js/main.js"></script>
+
+    </body>
 </html>
