@@ -1,7 +1,7 @@
 // const socket = io();
 const socket = io("https://v-call-nb7m.onrender.com", {
      transports: ["websocket"]
-   })dis
+   });
 let localStream;
 let peerConnection;
 const roomId = window.location.pathname.split('/').pop();
