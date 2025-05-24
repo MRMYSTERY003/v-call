@@ -11,7 +11,7 @@ const socket =  io(window.location.origin, {
 // If still failing after 5 seconds, show error
 setTimeout(() => {
   if (!socket.connected) {
-    updateStatus('fas fa-unlink', 'Connection issues - try refreshing', 'text-red-400');
+    console.log("connecting...");
   }
 }, 5000);
 
