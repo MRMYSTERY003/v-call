@@ -11,9 +11,7 @@ setTimeout(() => {
     // Optionally show a message to the user
   }
 }, 5000);
-// const socket = io("https://v-call-nb7m.onrender.com", {
-//     transports: ["websocket"]
-//   })
+
 let localStream;
 let peerConnection;
 const roomId = window.location.pathname.split('/').pop();
@@ -33,7 +31,7 @@ const remoteAudioContainer = document.getElementById('remoteAudioContainer');
 const participantCount = document.getElementById('participantCount');
 
 remoteAudioContainer.innerHTML = `
-    <div class = "participant-card">
+    <div class="participant-card">
         <div class="card-inner">
         <div class="card-header">Remote</div>
         <div class="card-content">
@@ -110,7 +108,7 @@ function createRemoteAudioElement(stream, userId) {
     audioElement.setAttribute('playsinline', 'true');
 
     const container = document.createElement('div');
-    // container.className = 'participant-card';
+    container.className = 'participant-card';
     container.id = `remote-${userId}`;
 
     container.innerHTML = `
@@ -471,7 +469,7 @@ socket.on('candidate', async (data) => {
 // Update participant count
 function updateParticipantCount(count) {
     currentParticipants = count;
-    participantCount.textContent = `${count}/2`;
+    // participantCount.textContent = `${count}/2`;
     console.log('updated Participant count:', count);
     
     // You might want to add this to your HTML:
