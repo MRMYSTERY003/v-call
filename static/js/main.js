@@ -2,9 +2,14 @@
 const socket = io("https://v-call-nb7m.onrender.com", {
     transports: ["websocket"]
   })
+
+
 let localStream;
 let peerConnection;
 const roomId = window.location.pathname.split('/').pop();
+
+// Add this at the top of your main.js
+let currentParticipants = 0;
 
 // State tracking variables
 let isSettingRemoteAnswer = false;
@@ -13,9 +18,26 @@ let isNegotiating = false;
 
 // DOM Elements
 const status = document.getElementById('status');
-const localAudioContainer = document.getElementById('localAudioContainer');
+const localAudioContainer = document.getElementById('localAudioLevel');
 const remoteAudioContainer = document.getElementById('remoteAudioContainer');
 const participantCount = document.getElementById('participantCount');
+
+remoteAudioContainer.innerHTML = `
+    <div >
+        <div class="card-inner">
+        <div class="card-header">Remote</div>
+        <div class="card-content">
+            <div class="l1">
+            <div class="avatar">
+                <img src="${profileImgUrl}"  alt="Avatar">
+            </div>
+            <div class="name">Waiting....</div>
+            </div>
+            <div class="audio-meter">
+            <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
+            </div>
+        </div>
+        </div>`; // Clear remote audio container
 
 let pushToTalkActive = false; // Track push-to-talk button state
 // ICE Server Configuration
@@ -28,74 +50,112 @@ const config = {
 };
 
 // Update status message
-function updateStatus(iconClass, text, colorClass = 'text-indigo-400') {
-    status.innerHTML = `
-        <div class="flex items-center justify-center space-x-2">
-            <i class="${iconClass} ${colorClass}"></i>
-            <span>${text}</span>
-        </div>
-    `;
-}
+// function updateStatus(iconClass, text, colorClass = 'text-indigo-400') {
+//     status.innerHTML = `
+//         <div class="flex items-center justify-center space-x-2 hidden">
+//             <i class="${iconClass} ${colorClass}"></i>
+//             <span>${text}</span>
+//         </div>
+//     `;
+// }
 
 // Create remote audio element
+// function createRemoteAudioElement(stream, userId) {
+//     const audioElement = document.createElement('audio');
+//     audioElement.srcObject = stream;
+//     audioElement.autoplay = true;
+//     audioElement.controls = false;
+//     audioElement.setAttribute('playsinline', 'true');
+    
+//     const container = document.getElementById("remort-card-content");
+
+//     container.id = `remote-${userId}`;
+    
+//     container.innerHTML = `
+
+//                 <div class="l1">
+//                 <div class="avatar">
+//                     <img src="${profileImgUrl}"   alt="Avatar">
+//                 </div>
+//                 <div class="name">${userId.slice(0, 4)}</div>
+//                 </div>
+//                 <div class="audio-meter">
+//                 <div class="audio-level" id="localAudioLevel" style="width: 70%;"></div>
+//                 </div>
+
+//     `;
+    
+//     container.appendChild(audioElement);
+//     audioElement.play().catch(e => console.log('Audio play error:', e));
+//     visualizeAudio(audioElement, container);
+//     return container;
+// }
+
+
 function createRemoteAudioElement(stream, userId) {
     const audioElement = document.createElement('audio');
     audioElement.srcObject = stream;
     audioElement.autoplay = true;
     audioElement.controls = false;
     audioElement.setAttribute('playsinline', 'true');
-    
+
     const container = document.createElement('div');
-    container.className = 'bg-gray-700 rounded-lg p-4 flex items-center';
+    container.className = 'participant-card';
     container.id = `remote-${userId}`;
-    
+
     container.innerHTML = `
-        <div class="flex-1">
-            <div class="flex items-center space-x-3">
-                <i class="fas fa-user text-green-400"></i>
-                <span>Participant ${userId.slice(0, 4)}</span>
+        <div class="card-inner">
+            <div class="card-header">
+                <span>Participant</span>
+                <span>${userId.slice(0, 4)}</span>
             </div>
-            <div class="mt-2 flex items-center space-x-2">
-                <i class="fas fa-volume-up text-green-400"></i>
-                <div class="flex-1 bg-gray-600 rounded-full h-2">
-                    <div class="bg-green-400 h-2 rounded-full audio-level" style="width: 0%"></div>
+            <div class="card-content">
+                <div class="l1">
+                    <div class="avatar">
+                        <img src="${profileImgUrl}" alt="Avatar">
+                    </div>
+                    <div class="name">${userId.slice(0, 4)}</div>
+                </div>
+                <div class="audio-meter">
+                    <div class="audio-level audio-level-${userId}" style="width: 0%; height: 8px; background-color: #22c55e;"></div>
                 </div>
             </div>
         </div>
     `;
-    
-    container.appendChild(audioElement);
+
     audioElement.play().catch(e => console.log('Audio play error:', e));
-    visualizeAudio(audioElement, container);
+    visualizeAudio(audioElement, container, userId);
+    remoteAudioContainer.innerHTML = ''; // Clear previous content
+    remoteAudioContainer.appendChild(container);
     return container;
 }
 
 // Visualize audio levels
-function visualizeAudio(audioElement, container) {
+function visualizeAudio(audioElement, container, userId) {
     try {
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const analyser = audioContext.createAnalyser();
         const source = audioContext.createMediaStreamSource(audioElement.srcObject);
         source.connect(analyser);
         analyser.fftSize = 32;
-        
+
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
-        
+
         function update() {
             if (!audioElement.srcObject || audioElement.srcObject.getTracks().length === 0) return;
-            
+
             analyser.getByteFrequencyData(dataArray);
             const level = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
-            const levelElement = container.querySelector('.audio-level');
-            
+            const levelElement = container.querySelector(`.audio-level-${userId}`);
+
             if (levelElement) {
                 levelElement.style.width = `${Math.min(100, level * 2)}%`;
             }
-            
+
             requestAnimationFrame(update);
         }
-        
+
         audioElement.onplaying = update;
     } catch (err) {
         console.error('Audio visualization error:', err);
@@ -121,7 +181,7 @@ function setupPushToTalk() {
             pushToTalkActive = true;
             toggleMute(false);
             pushToTalkBtn.classList.add('active');
-            updateStatus('fas fa-microphone', 'Transmitting...', 'text-green-400');
+            // updateStatus('fas fa-microphone', 'Transmitting...', 'text-green-400');
         }
     };
 
@@ -130,7 +190,7 @@ function setupPushToTalk() {
             pushToTalkActive = false;
             toggleMute(true);
             pushToTalkBtn.classList.remove('active');
-            updateStatus('fas fa-microphone-slash', 'Listening...', 'text-yellow-400');
+            // updateStatus('fas fa-microphone-slash', 'Listening...', 'text-yellow-400');
         }
     };
 
@@ -156,6 +216,32 @@ function setupPushToTalk() {
 // Initialize call
 async function initializeCall() {
     try {
+
+
+        // First check room status
+        const response = await fetch(`/check_room/${roomId}`);
+        const roomStatus = await response.json();
+        
+        if (!roomStatus.can_join) {
+            // updateStatus('fas fa-users', 'Room is full (2/2 participants)', 'text-red-400');
+            remoteAudioContainer.innerHTML = `
+                <div class="card-inner">
+                        <div class="card-header">Remote</div>
+                        <div class="card-content">
+                            <div class="l1">
+
+                                This room is already full with 2 participants.
+
+                                Try creating a new room or join later.
+                            </div>
+                        </div>
+                </div>
+            `;
+            return;
+        }
+
+
+
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
         
         peerConnection = new RTCPeerConnection(config);
@@ -175,8 +261,9 @@ async function initializeCall() {
 
         peerConnection.oniceconnectionstatechange = () => {
             if (peerConnection.iceConnectionState === 'disconnected') {
-                updateStatus('fas fa-exclamation-triangle', 'Disconnected', 'text-red-400');
+                // updateStatus('fas fa-exclamation-triangle', 'Disconnected', 'text-red-400');
                 endCall();
+                location.reload();
             }
         };
 
@@ -190,13 +277,11 @@ async function initializeCall() {
         };
 
         peerConnection.ontrack = e => {
-            if (!document.getElementById(`remote-${e.streams[0].id}`)) {
-                const container = createRemoteAudioElement(e.streams[0], e.streams[0].id);
-                remoteAudioContainer.innerHTML = '';
-                remoteAudioContainer.appendChild(container);
-                updateParticipantCount(1);
-                updateStatus('fas fa-check-circle', 'Connected! Push to talk', 'text-green-400');
+            const existing = document.getElementById(`remote-${e.streams[0].id}`);
+            if (existing) {
+                existing.remove(); // Remove any stale copy
             }
+            const container = createRemoteAudioElement(e.streams[0], e.streams[0].id);
         };
 
         // Add local tracks
@@ -205,17 +290,17 @@ async function initializeCall() {
         });
 
         // Set up local audio visualization
-        localAudioContainer.innerHTML = `
-            <div class="w-full h-full flex flex-col justify-center items-center">
-                <div class="flex items-center space-x-3 mb-2">
-                    <i class="fas fa-microphone text-green-400"></i>
-                    <span>You</span>
-                </div>
-                <div class="w-full bg-gray-600 rounded-full h-2">
-                    <div class="bg-green-400 h-2 rounded-full local-audio-level"></div>
-                </div>
-            </div>
-        `;
+        // localAudioContainer.innerHTML = `
+        //     <div class="w-full h-full flex flex-col justify-center items-center">
+        //         <div class="flex items-center space-x-3 mb-2">
+        //             <i class="fas fa-microphone text-green-400"></i>
+        //             <span>You</span>
+        //         </div>
+        //         <div class="w-full bg-gray-600 rounded-full h-2">
+        //             <div class="bg-green-400 h-2 rounded-full local-audio-level"></div>
+        //         </div>
+        //     </div>
+        // `;
         
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const analyser = audioContext.createAnalyser();
@@ -229,7 +314,8 @@ async function initializeCall() {
         function updateLocalAudio() {
             analyser.getByteFrequencyData(dataArray);
             const level = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
-            const levelElement = document.querySelector('.local-audio-level');
+            const levelElement = document.getElementById('localAudioLevel');
+            console.log('Local audio level:', level);
             if (levelElement) {
                 levelElement.style.width = `${Math.min(100, level * 2)}%`;
             }
@@ -252,13 +338,63 @@ async function initializeCall() {
         // Initialize push-to-talk
         setupPushToTalk();
         toggleMute(true);
-        updateStatus('fas fa-microphone-slash', 'Ready - Push to talk', 'text-yellow-400');
+        // updateStatus('fas fa-microphone-slash', 'Ready - Push to talk', 'text-yellow-400');
         
     } catch (err) {
         console.error('Error initializing call:', err);
-        updateStatus('fas fa-exclamation-circle', 'Error accessing microphone', 'text-red-400');
+        // updateStatus('fas fa-exclamation-circle', 'Error accessing microphone', 'text-red-400');
     }
 }
+
+
+// Add this handler for room full event
+socket.on('room_full', () => {
+    // updateStatus('fas fa-users', 'Room is full (2/2 participants)', 'text-red-400');
+    remoteAudioContainer.innerHTML = `
+        <div class="text-center p-4 bg-gray-700 rounded-lg">
+            <i class="fas fa-users-slash text-red-400 text-4xl mb-2"></i>
+            <p class="text-lg">This room is already full with 2 participants.</p>
+            <p class="text-sm text-gray-300">Try creating a new room or join later.</p>
+        </div>
+    `;
+    
+    // Clean up if already started
+    endCall();
+});
+
+socket.on('participant_update', (data) => {
+    currentParticipants = data.count;
+    updateParticipantCount(currentParticipants);
+    console.log('Participant count updated!!:', currentParticipants);
+    if (currentParticipants >= 2) {
+        // Update UI to show room is full
+        // document.getElementById('roomStatus').textContent = 'Room is full (2/2)';
+    }
+});
+
+
+socket.on('participant_left', (data) => {
+    currentParticipants = data.count;
+    updateParticipantCount(currentParticipants);
+
+    // Remove the participant card
+    const remoteCard = document.getElementById(`remote-${data.userId}`);
+    console.log(remoteCard, currentParticipants, 'Remote card removed');
+    if (remoteCard) remoteCard.remove();
+
+    // Show a message if no remote participants remain
+    if (currentParticipants === 1) {
+        remoteAudioContainer.innerHTML = `
+            <div class="text-center p-4 bg-gray-700 rounded-lg">
+                <i class="fas fa-user-clock text-yellow-400 text-4xl mb-2"></i>
+                <p class="text-lg">Waiting for another participant to join...</p>
+            </div>
+        `;
+    }
+
+    document.getElementById('roomStatus').textContent = `Participants: ${currentParticipants}/2`;
+});
+
 
 // Handle incoming offers
 socket.on('offer', async (data) => {
@@ -279,7 +415,7 @@ socket.on('offer', async (data) => {
         });
     } catch (err) {
         console.error('Error handling offer:', err);
-        updateStatus('fas fa-exclamation-circle', 'Error handling call', 'text-red-400');
+        // updateStatus('fas fa-exclamation-circle', 'Error handling call', 'text-red-400');
     }
 });
 
@@ -304,10 +440,10 @@ socket.on('answer', async (data) => {
             await peerConnection.setRemoteDescription(new RTCSessionDescription(answer));
         }
         
-        updateStatus('fas fa-check-circle', 'Connected! Push to talk', 'text-green-400');
+        // updateStatus('fas fa-check-circle', 'Connected! Push to talk', 'text-green-400');
     } catch (err) {
         console.error('Error handling answer:', err);
-        updateStatus('fas fa-exclamation-circle', 'Error connecting', 'text-red-400');
+        // updateStatus('fas fa-exclamation-circle', 'Error connecting', 'text-red-400');
     }
 });
 
@@ -324,9 +460,13 @@ socket.on('candidate', async (data) => {
 
 // Update participant count
 function updateParticipantCount(count) {
-    participantCount.textContent = count;
+    currentParticipants = count;
+    participantCount.textContent = `${count}/2`;
+    console.log('updated Participant count:', count);
+    
+    // You might want to add this to your HTML:
+    // <div id="roomStatus" class="text-sm text-gray-300">Participants: 1/2</div>
 }
-
 // End call
 function endCall() {
     if (peerConnection) {
