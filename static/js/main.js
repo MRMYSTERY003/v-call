@@ -21,7 +21,7 @@ const remoteAudioContainer = document.getElementById('remoteAudioContainer');
 const participantCount = document.getElementById('participantCount');
 
 remoteAudioContainer.innerHTML = `
-    <div >
+    <div class = "participant-card">
         <div class="card-inner">
         <div class="card-header">Remote</div>
         <div class="card-content">
@@ -98,7 +98,7 @@ function createRemoteAudioElement(stream, userId) {
     audioElement.setAttribute('playsinline', 'true');
 
     const container = document.createElement('div');
-    container.className = 'participant-card';
+    // container.className = 'participant-card';
     container.id = `remote-${userId}`;
 
     container.innerHTML = `
