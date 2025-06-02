@@ -11,7 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Inconsolata:wght@500&family=Inter:wght@500&family=Orbitron:wght@600&display=swap" rel="stylesheet">
     <style>
         :root {
-            --dark-bg: #0B0B17;
+            --dark-bg: #0f0f20;
             --card-bg: #1A1A2E;
             --card-border: #8E44AD;
             --header-gradient-start: #8E44AD;
@@ -27,10 +27,10 @@
 
     body {
         background-color: var(--dark-bg);
-        background-image: url("{{ url_for('static', filename='img/bg.jpg') }}");
+        background-image: url("{{ url_for('static', filename='img/bgn.svg') }}");
         background-position: center bottom; /* ✅ Centered horizontally */
         background-repeat: no-repeat;
-        background-size: auto; /* Or use cover/contain as needed */
+        background-size: contain; /* Or use cover/contain as needed */
         
         color: var(--text-primary);
         font-family: 'Inter', sans-serif;
