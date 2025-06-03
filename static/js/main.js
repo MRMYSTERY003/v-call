@@ -158,7 +158,7 @@ function visualizeAudio(audioElement, container, userId) {
             const levelElement = container.querySelector(`.audio-level-${userId}`);
 
             if (levelElement) {
-                levelElement.style.width = `${Math.min(100, level * 2)}%`;
+                levelElement.style.width = `${Math.min(100, level * 0.8)}%`;
             }
 
             requestAnimationFrame(update);
@@ -325,7 +325,7 @@ async function initializeCall() {
             const levelElement = document.getElementById('localAudioLevel');
             console.log('Local audio level:', level);
             if (levelElement) {
-                levelElement.style.width = `${Math.min(100, level * 2)}%`;
+                levelElement.style.width = `${Math.min(100, level * 0.8)}%`;
             }
             requestAnimationFrame(updateLocalAudio);
         }
