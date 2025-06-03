@@ -21,7 +21,7 @@
             --audio-meter: #2ECC71;
             --control-gradient-start: #9B59B6;
             --control-gradient-end: #8E44AD;
-            --avatar-bg: #44475A;
+            --avatar-bg: #f3eb0f;
             --audio-track: #2E2E3F;
         }
 
@@ -113,7 +113,7 @@
 
         .logo {
             font-family: 'Audiowide', cursive;
-            font-weight: 700;
+            font-weight: 400;
             font-size: 34px;
             margin-bottom: 32px;
 
@@ -196,19 +196,20 @@
     }
 
     .participant-card .avatar {
-      width: 40px;
-      height: 40px;
+      width: 50px;
+      height: 50px;
       border-radius: 50%;
       overflow: hidden;
       margin-right: 12px;
-      background-color: #333;
+      background-color: var(--avatar-bg);
       display: flex;
       align-items: center;
       justify-content: center;
     }
 
     .participant-card .avatar img {
-      width: 100%;
+        margin-top: 10px;
+      width: 120%;
       height: auto;
       display: block;
     }
@@ -399,7 +400,7 @@
         <div class="card-content">
             <div class="l1">
             <div class="avatar">
-                <img src="{{ url_for('static', filename='img/profile.svg') }}"  alt="Avatar">
+                <img src="{{ url_for('static', filename='img/pro.png') }}"  alt="Avatar">
             </div>
             <div class="name">You</div>
             </div>
@@ -484,7 +485,7 @@
                 window.location.href = '/';
             });
 
- const profileImgUrl = "{{ url_for('static', filename='img/profile.svg') }}";
+ const profileImgUrl = "{{ url_for('static', filename='img/pro-rem.png') }}";
 
         </script>
 
