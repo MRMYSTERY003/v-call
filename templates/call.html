@@ -30,7 +30,7 @@
         background-image: url("{{ url_for('static', filename='img/bgn.svg') }}");
         background-position: center bottom; /* ✅ Centered horizontally */
         background-repeat: no-repeat;
-        background-size: contain; /* Or use cover/contain as needed */
+        background-size:1020px auto;; /* Or use cover/contain as needed */
         
         color: var(--text-primary);
         font-family: 'Inter', sans-serif;
@@ -106,29 +106,31 @@
         /* Header */
         .header {
             position: absolute;
-            top: 32px;
-            left: 32px;
+            top: 50px;
+            left: 50px;
+
         }
 
         .logo {
             font-family: 'Audiowide', cursive;
             font-weight: 700;
-            font-size: 24px;
+            font-size: 34px;
             margin-bottom: 32px;
+
         }
 
         .room-id {
             font-family: 'Inconsolata', monospace;
             font-weight: 500;
-            font-size: 18px;
+            font-size: 22px;
             color: var(--text-accent);
         }
 
         /* Controls */
         .controls {
             position: absolute;
-            top: 32px;
-            right: 32px;
+            top: 50px;
+            right: 50px;
             display: flex;
             gap: 16px;
         }
@@ -157,7 +159,7 @@
         .participant-card {
       background: linear-gradient(135deg, #7C3AED, #EC4899);
       border-radius: 16px;
-      padding: 2px;               /* thickness of the gradient border */
+      padding: 3px;               /* thickness of the gradient border */
       display: inline-block;
       margin : 0 20px
     }
@@ -167,14 +169,14 @@
       background-color: #1F1F2E;
       border-radius: 14px;
       overflow: hidden;
-      width: 320px;
+      width: 400px;
       color: #FFF;
       font-family: sans-serif;
     }
 
     /* header */
     .participant-card .card-header {
-      background-color: #7C3AED;
+      background: linear-gradient(135deg, #7C3AED, #EC4899);
       padding: 8px 16px;
       font-weight: 600;
       font-size: 16px;
@@ -183,6 +185,8 @@
     /* content area */
     .participant-card .card-content {
       padding: 16px;
+      background-color: #1F1F2E;
+
     }
 
     .participant-card .l1 {
@@ -232,15 +236,18 @@
 
         /* Voice Control */
         .voice-control {
+            color: transparent;
+            background-color: transparent;
             position: fixed;
             bottom: 80px;
             left: 49%;
             transform: translateX(-50%);
-            width: 100px;
-            height: 100px;
+            width: 50px;
+            height: 50px;
             border-radius: 50%;
-            background: linear-gradient(to bottom, var(--control-gradient-start), var(--control-gradient-end));
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+            border: none;
+            /* background: linear-gradient(to bottom, var(--control-gradient-start), var(--control-gradient-end));
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4); */
             display: flex;
             align-items: center;
             justify-content: center;
@@ -278,14 +285,28 @@
 
         @media (max-width: 1023px) {
 
-                body {
-                    background-image: url("{{ url_for('static', filename='img/ph-bg.svg') }}");         /* Remove background image */
-                    background-color: var(--dark-bg); /* Optional: ensure dark background still shows */
+            body {
+                background-image: url("{{ url_for('static', filename='img/ph-bg.svg') }}");         /* Remove background image */
+                background-color: var(--dark-bg); /* Optional: ensure dark background still shows */
                 background-size: cover;   /* fills entire area, may crop */
-                background-size: contain;              }
+                background-size: contain;              
+            }
+            
+            .controls{
+                margin-top: 50px;
+            }
+
+            .header {
+                font-size: 1.9rem;
+            }
+
+            .header .room-id {
+                font-size: 1.5rem;
+                font-weight: 500;
+            }
 
             .participants-container {
-                margin-top: 120px;
+                margin-top: 190px;
                 flex-direction: column;
                 align-items: center;
                 gap: 24px;
@@ -345,14 +366,14 @@
         <!-- Controls -->
         <div class="controls">
             <button class="control-btn" id="exit" aria-label="Exit room">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
                     <polyline points="16 17 21 12 16 7"></polyline>
                     <line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
             </button>
             <button class="control-btn" id="copyBtn" aria-label="Share room">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
                 <!-- <path d="M4 12v-2a4 4 0 0 1 4-4h2" />
                 <path d="M16 12v-2a4 4 0 0 0-4-4H8" />
@@ -418,12 +439,7 @@
 
     <!-- Voice Control -->
     <button class="voice-control" id="pushToTalkBtn" aria-label="Voice control">
-        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-            <line x1="12" y1="19" x2="12" y2="23"></line>
-            <line x1="8" y1="23" x2="16" y2="23"></line>
-        </svg>
+        <img height="200px" width="200px" src="{{ url_for('static', filename='img/mic.svg') }}" alt="" ">
     </button>
     
     
