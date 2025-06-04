@@ -184,6 +184,10 @@ function setupPushToTalk() {
     const pushToTalkBtn = document.getElementById('pushToTalkBtn');
     if (!pushToTalkBtn) return;
 
+    let pushToTalkActive = false;
+    let alwaysTransmit = false;
+    let lastTap = 0;
+
     const startTransmitting = () => {
         if (!pushToTalkActive && peerConnection && localStream) {
             pushToTalkActive = true;
@@ -202,24 +206,98 @@ function setupPushToTalk() {
         }
     };
 
-    // Mouse events
-    pushToTalkBtn.addEventListener('mousedown', startTransmitting);
-    pushToTalkBtn.addEventListener('mouseup', stopTransmitting);
-    pushToTalkBtn.addEventListener('mouseleave', stopTransmitting); // If mouse leaves while pressed
-    
-    // Touch events
+    const enableAlwaysTransmit = () => {
+        alwaysTransmit = true;
+        startTransmitting();
+        console.log("Always Transmit Mode ON");
+    };
+
+    const disableAlwaysTransmit = () => {
+        alwaysTransmit = false;
+        stopTransmitting();
+        console.log("Always Transmit Mode OFF");
+    };
+
+    // Handle double tap to enable, single tap to disable
+    pushToTalkBtn.addEventListener('click', (e) => {
+        const currentTime = new Date().getTime();
+        const tapLength = currentTime - lastTap;
+
+        if (tapLength < 300 && tapLength > 0) {
+            // Double tap: enable always transmit
+            if (!alwaysTransmit) {
+                enableAlwaysTransmit();
+            }
+        } else {
+            // Single tap: disable always transmit (if active)
+            setTimeout(() => {
+                if (new Date().getTime() - lastTap >= 300 && alwaysTransmit) {
+                    disableAlwaysTransmit();
+                }
+            }, 300);
+        }
+
+        lastTap = currentTime;
+    });
+
+    // Mouse events (only if not in always transmit mode)
+    pushToTalkBtn.addEventListener('mousedown', () => {
+        if (!alwaysTransmit) startTransmitting();
+    });
+    pushToTalkBtn.addEventListener('mouseup', () => {
+        if (!alwaysTransmit) stopTransmitting();
+    });
+    pushToTalkBtn.addEventListener('mouseleave', () => {
+        if (!alwaysTransmit) stopTransmitting();
+    });
+
+    // Touch events (only if not in always transmit mode)
+
+    let lastTapTime = 0;
+    let tapTimeout;
+    const handleTap = () => {
+        const currentTime = new Date().getTime();
+        const tapGap = currentTime - lastTapTime;
+
+        if (tapGap < 300 && tapGap > 0) {
+            // Double tap detected
+            clearTimeout(tapTimeout); // Cancel single-tap timeout
+            if (!alwaysTransmit) enableAlwaysTransmit();
+        } else {
+            // Delay single-tap action to check for double tap
+            tapTimeout = setTimeout(() => {
+                if (alwaysTransmit) disableAlwaysTransmit();
+            }, 300);
+        }
+
+        lastTapTime = currentTime;
+    };
+
+    // Touch events (hold to talk if not always transmit)
     pushToTalkBtn.addEventListener('touchstart', (e) => {
         e.preventDefault();
-        startTransmitting();
+        if (!alwaysTransmit) startTransmitting();
     });
+
+    // Handle single/double tap on mobile (touchend)
     pushToTalkBtn.addEventListener('touchend', (e) => {
         e.preventDefault();
-        stopTransmitting();
+        if (!alwaysTransmit) stopTransmitting(); // keep your original logic
+        handleTap();
     });
-    
-    // Handle window blur (e.g., if user switches tabs while holding button)
-    window.addEventListener('blur', stopTransmitting);
+
+    // Also support desktop (click)
+    pushToTalkBtn.addEventListener('click', (e) => {
+        // On desktop, click is reliable
+        handleTap();
+    });
+
+    // Handle window blur (stop transmitting if not always transmit mode)
+    window.addEventListener('blur', () => {
+        if (!alwaysTransmit) stopTransmitting();
+    });
 }
+
 
 // Initialize call
 async function initializeCall() {
