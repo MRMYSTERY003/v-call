@@ -10,6 +10,11 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Inconsolata:wght@500&family=Inter:wght@500&family=Orbitron:wght@600&display=swap" rel="stylesheet">
     <style>
+        * {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
         :root {
             --dark-bg: #0f0f20;
             --card-bg: #1A1A2E;
@@ -235,16 +240,20 @@
       transition: width 0.1s ease-out;
     }
 
-        /* Voice Control */
+    .voice-control img.mic-icon {
+
+        pointer-events: none; /* Allows clicks to go through to the button */
+    }
+            /* Voice Control */
         .voice-control {
             color: transparent;
             background-color: transparent;
             position: fixed;
             bottom: 80px;
             left: 49%;
-            transform: translateX(-50%);
-            width: 50px;
-            height: 50px;
+            transform: translateX(-50%) ;
+            width: 200px;
+            height: 200px;
             border-radius: 50%;
             border: none;
             /* background: linear-gradient(to bottom, var(--control-gradient-start), var(--control-gradient-end));
@@ -256,13 +265,17 @@
             transition: transform 0.2s ease;
         }
 
+        
+
         .voice-control:hover {
             transform: translateX(-50%) scale(1.05);
         }
 
         .voice-control:active {
-            transform: translateX(-50%) scale(0.95);
-        }
+            transform: translateX(-50%) scale(0.95) ;
+            /* background-color: rgba(24, 247, 24, 0.601);
+            border: 2px solid lime; */
+        } 
 
         .status-cnt {
             display: flex;
@@ -276,8 +289,13 @@
         /* Responsive */
         @media (max-width: 1439px) {
             .participant-card {
-                width: 300px;
+                width: 340px;
             }
+
+            .participant-card .card-inner {
+                width: 339px;
+            }
+
             .voice-control {
                 width: 80px;
                 height: 80px;
@@ -293,6 +311,7 @@
                 background-size: contain;              
             }
             
+
             .controls{
                 margin-top: 50px;
             }
@@ -313,15 +332,29 @@
                 gap: 24px;
             }
             .voice-control {
-                position: relative;
-                bottom: auto;
-                left: auto;
-                transform: none;
-                margin: 48px auto;
+                width: 10vw;
+                height: 10vw;
+                bottom: 5vh;
             }
+
+
+.voice-control .mic-icon {
+        width: 200px;
+    height: 200px;
+    transition: filter 0.3s ease;
+}
+
+.voice-control:active .mic-icon {
+    filter:
+        drop-shadow(0 0 6px #00ff00)
+        drop-shadow(0 0 12px #00e5ff)
+        drop-shadow(0 0 18px #ff00ff);
+}
 
             .participant-card {
                 margin-top: 20px;
+            width: 300px;
+
             }
             .participant-card .card-inner {
             background-color: #1F1F2E;
@@ -440,7 +473,7 @@
 
     <!-- Voice Control -->
     <button class="voice-control" id="pushToTalkBtn" aria-label="Voice control">
-        <img height="200px" width="200px" src="{{ url_for('static', filename='img/mic.svg') }}" alt="" ">
+       <img src="{{ url_for('static', filename='img/mic.svg') }}" alt="Microphone Icon" class="mic-icon">
     </button>
     
     
