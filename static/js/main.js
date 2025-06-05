@@ -209,12 +209,16 @@ function setupPushToTalk() {
     const enableAlwaysTransmit = () => {
         alwaysTransmit = true;
         startTransmitting();
+        pushToTalkBtn.classList.add('active');
+
         console.log("Always Transmit Mode ON");
     };
 
     const disableAlwaysTransmit = () => {
         alwaysTransmit = false;
         stopTransmitting();
+            pushToTalkBtn.classList.remove('active');
+
         console.log("Always Transmit Mode OFF");
     };
 
