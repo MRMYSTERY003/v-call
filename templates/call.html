@@ -241,6 +241,8 @@
     }
 
     .voice-control img.mic-icon {
+        width: 200px;
+        height: 200px;
 
         pointer-events: none; /* Allows clicks to go through to the button */
     }
@@ -249,7 +251,7 @@
             color: transparent;
             background-color: transparent;
             position: fixed;
-            bottom: 80px;
+            bottom: 50px;
             left: 49%;
             transform: translateX(-50%) ;
             width: 200px;
@@ -276,6 +278,14 @@
             /* background-color: rgba(24, 247, 24, 0.601);
             border: 2px solid lime; */
         } 
+
+        .voice-control.active .mic-icon {
+    filter:
+        drop-shadow(0 0 6px #00ff00)
+        drop-shadow(0 0 12px #00e5ff)
+        drop-shadow(0 0 18px #4bff4e);
+}
+
 
         .status-cnt {
             display: flex;
@@ -334,7 +344,7 @@
             .voice-control {
                 width: 10vw;
                 height: 10vw;
-                bottom: 5vh;
+                bottom: 10vh;
             }
 
 
