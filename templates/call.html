@@ -11,9 +11,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Inconsolata:wght@500&family=Inter:wght@500&family=Orbitron:wght@600&display=swap" rel="stylesheet">
     <style>
         * {
-  touch-action: manipulation;
-  -webkit-tap-highlight-color: transparent;
-}
+        touch-action: manipulation;
+        -webkit-tap-highlight-color: transparent;
+        }
 
         :root {
             --dark-bg: #000000;
@@ -30,24 +30,24 @@
             --audio-track: #2E2E3F;
         }
 
-    body {
-        background-color: var(--dark-bg);
-        background-image: url("{{ url_for('static', filename='img/bgn.svg') }}");
-        background-position: center bottom; /* ✅ Centered horizontally */
-        background-repeat: no-repeat;
-        background-size:900px auto; /* Or use cover/contain as needed */
-        
-        color: var(--text-primary);
-        font-family: 'Inter', sans-serif;
-        margin: 0;
-        padding: 0;
-        min-height: 100vh;
-        position: relative;
-        overflow-x: hidden;
-        display: flex;
-        justify-content: space-around;
-        flex-direction: column;
-    }
+        body {
+            background-color: var(--dark-bg);
+            background-image: url("{{ url_for('static', filename='img/bgn.svg') }}");
+            background-position: center bottom; /* ✅ Centered horizontally */
+            background-repeat: no-repeat;
+            background-size:900px auto; /* Or use cover/contain as needed */
+            
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            display: flex;
+            justify-content: space-around;
+            flex-direction: column;
+        }
 
         /* Background Glows */
         body::before,
@@ -162,90 +162,90 @@
         }
 
         .participant-card {
-      background: linear-gradient(135deg, #7C3AED, #EC4899);
-      border-radius: 16px;
-      padding: 3px;               /* thickness of the gradient border */
-      display: inline-block;
-      margin : 0 20px
-    }
+            background: linear-gradient(135deg, #7C3AED, #EC4899);
+            border-radius: 16px;
+            padding: 3px;               /* thickness of the gradient border */
+            display: inline-block;
+            margin : 0 20px
+        }   
 
-    /* inner card */
-    .participant-card .card-inner {
-      background-color: #1F1F2E;
-      border-radius: 14px;
-      overflow: hidden;
-      width: 500px;
-      color: #FFF;
-      font-family: sans-serif;
-    }
+        /* inner card */
+        .participant-card .card-inner {
+        background-color: #1F1F2E;
+        border-radius: 14px;
+        overflow: hidden;
+        width: 500px;
+        color: #FFF;
+        font-family: sans-serif;
+        }
 
-    /* header */
-    .participant-card .card-header {
-      background: linear-gradient(135deg, #7C3AED, #EC4899);
-      padding: 8px 16px;
-      font-weight: 600;
-      font-size: 16px;
-    }
+        /* header */
+        .participant-card .card-header {
+        background: linear-gradient(135deg, #7C3AED, #EC4899);
+        padding: 8px 16px;
+        font-weight: 600;
+        font-size: 16px;
+        }
 
-    /* content area */
-    .participant-card .card-content {
-      padding: 10px;
-      background-color: #1F1F2E;
+        /* content area */
+        .participant-card .card-content {
+        padding: 10px;
+        background-color: #1F1F2E;
 
-    }
+        }
 
-    .participant-card .l1 {
-      display: flex;
-      align-items: center;
-      margin-bottom: 12px;
-    }
+        .participant-card .l1 {
+        display: flex;
+        align-items: center;
+        margin-bottom: 12px;
+        }
 
-    .participant-card .avatar {
-      width: 50px;
-      height: 50px;
-      border-radius: 50%;
-      overflow: hidden;
-      margin-right: 12px;
-      background-color: var(--avatar-bg);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+        .participant-card .avatar {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        overflow: hidden;
+        margin-right: 12px;
+        background-color: var(--avatar-bg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        }
 
-    .participant-card .avatar img {
-        margin-top: 10px;
-      width: 120%;
-      height: auto;
-      display: block;
-    }
+        .participant-card .avatar img {
+            margin-top: 10px;
+        width: 120%;
+        height: auto;
+        display: block;
+        }
 
-    .participant-card .name {
-      font-size: 16px;
-      font-weight: 500;
-    }
+        .participant-card .name {
+        font-size: 16px;
+        font-weight: 500;
+        }
 
-    /* audio meter */
-    .participant-card .audio-meter {
-      width: 100%;
-      height: 8px;
-      background-color: #374151;
-      border-radius: 4px;
-      overflow: hidden;
-    }
-    .participant-card .audio-level {
-      height: 100%;
-      background-color: #10B981;
-      border-radius: 4px 0 0 4px;
-      width: 70%; /* or controlled dynamically via JS */
-      transition: width 0.1s ease-out;
-    }
+        /* audio meter */
+        .participant-card .audio-meter {
+        width: 100%;
+        height: 8px;
+        background-color: #374151;
+        border-radius: 4px;
+        overflow: hidden;
+        }
+        .participant-card .audio-level {
+        height: 100%;
+        background-color: #10B981;
+        border-radius: 4px 0 0 4px;
+        width: 70%; /* or controlled dynamically via JS */
+        transition: width 0.1s ease-out;
+        }
 
-    .voice-control img.mic-icon {
-        width: 200px;
-        height: 200px;
+        .voice-control img.mic-icon {
+            width: 200px;
+            height: 200px;
 
-        pointer-events: none; /* Allows clicks to go through to the button */
-    }
+            pointer-events: none; /* Allows clicks to go through to the button */
+        }
             /* Voice Control */
         .voice-control {
             color: transparent;
@@ -280,11 +280,11 @@
         } 
 
         .voice-control.active .mic-icon {
-    filter:
-        drop-shadow(0 0 6px #00ff0084)
-        drop-shadow(0 0 12px #00e5ff91)
-        drop-shadow(0 0 18px #4bff4e72);
-}
+            filter:
+                drop-shadow(0 0 6px #00ff0084)
+                drop-shadow(0 0 12px #00e5ff91)
+                drop-shadow(0 0 18px #4bff4e72);
+        }
 
 
         .status-cnt {
@@ -323,7 +323,7 @@
             
 
             .controls{
-                margin-top: 20%;
+                margin-top: 15%;
             }
 
             .header {
@@ -348,18 +348,18 @@
             }
 
 
-.voice-control .mic-icon {
-        width: 200px;
-    height: 200px;
-    transition: filter 0.3s ease;
-}
+            .voice-control .mic-icon {
+                    width: 200px;
+                height: 200px;
+                transition: filter 0.3s ease;
+            }
 
-.voice-control:active .mic-icon {
-    filter:
-        drop-shadow(0 0 6px #00ff00)
-        drop-shadow(0 0 12px #00e5ff)
-        drop-shadow(0 0 18px #ff00ff);
-}
+            .voice-control:active .mic-icon {
+                filter:
+                    drop-shadow(0 0 6px #00ff00)
+                    drop-shadow(0 0 12px #00e5ff)
+                    drop-shadow(0 0 18px #ff00ff);
+            }
 
             .participant-card {
                 margin-top: 20px;
@@ -382,19 +382,70 @@
 
         @media (max-width: 376px) {
 
+            .controls{
+                margin-top: 10%;
+            }
+
+
+            .header {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+
+            }
+
             .voice-control {
-                width: 60px;
+                width: 50px;
                 height: 60px;
                 margin-top: 0px;
                 
             }
+
+            .voice-control {
+                width: 25vw;
+                height: 25vw;
+                bottom: 3vh;
+            }
+
             .voice-control svg {
-                width: 24px;
-                height: 24px;
+                width: 25vw;
+                height: 25vw;
             }
 
 
         }
+
+
+        @media (max-width: 345px) {
+
+        .controls{
+            margin-top: 12%;
+            position: absolute;
+            right: 10px;
+        }
+
+
+        .header {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+
+        }
+        .voice-control {
+            width: 25vw;
+            height: 25vw;
+            bottom: 7vh;
+        }
+
+        .voice-control svg {
+            width: 25vw;
+            height: 25vw;
+        }
+
+
+        }
+
+
 
 
     </style>
