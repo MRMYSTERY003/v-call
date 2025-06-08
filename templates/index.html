@@ -11,7 +11,7 @@
         :root {
             --purple: #E63FFF;
             --cyan: #22E2FF;
-            --dark-bg: #0B0B17;
+            --dark-bg: #000000;
         }
         
         * {
@@ -23,7 +23,7 @@
         body {
             background-color: var(--dark-bg);
             background-image: url("{{ url_for('static', filename='img/bg.svg') }}");
-            background-position: center bottom; /* ✅ Centered horizontally */
+            background-position: center calc(100% - -150px);
             background-repeat: no-repeat;
             background-size: auto;
             color: white;
@@ -85,9 +85,9 @@
         
         .logo {
             font-family: 'Audiowide', cursive;
-            font-weight: 700;
-            font-size: 24px;
-            line-height: 28px;
+            font-weight: 400;
+            font-size: 40px;
+            line-height: 100%;
             color: #FFFFFF;
         }
         
@@ -157,6 +157,7 @@
         .buttons {
             display: flex;
             gap: 24px;
+            width: 60%;
         }
         
         .btn {
@@ -177,6 +178,8 @@
         .btn-create {
             background: linear-gradient(90deg, var(--purple), var(--cyan));
                border: 2px solid white; /* 👈 White border */
+                width: 50%;
+
         }
         
         .btn-create:hover {
@@ -190,7 +193,9 @@
         }
         
         .btn-join {
-            background: transparent;
+            background: black;
+               width: 50%;
+
             border: 2px solid #FFFFFF;
         }
         
@@ -213,12 +218,23 @@
                 line-height: 42px;
             }
             
-            .input-container {
-                width: 80%;
-            }
+
         }
         
         @media (max-width: 600px) {
+
+            body {
+                background-image: url("{{ url_for('static', filename='img/ph-bg.svg') }}");         /* Remove background image */
+                background-color: var(--dark-bg); /* Optional: ensure dark background still shows */
+                background-size: cover;   /* fills entire area, may crop */
+                background-size: contain;            
+                background-position: center bottom;  
+            }
+            
+
+            .header {
+                margin-top: 50px;
+            }
             .input-container {
                 width: calc(100% - 32px);
             }
@@ -229,8 +245,12 @@
                 gap: 16px;
             }
             
+            .buttons{
+                flex-direction: row;
+            }
+
             .btn {
-                width: 100%;
+                width: 50%;
             }
         }
     </style>
