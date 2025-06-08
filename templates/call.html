@@ -16,7 +16,7 @@
 }
 
         :root {
-            --dark-bg: #0f0f20;
+            --dark-bg: #000000;
             --card-bg: #1A1A2E;
             --card-border: #8E44AD;
             --header-gradient-start: #8E44AD;
@@ -35,7 +35,7 @@
         background-image: url("{{ url_for('static', filename='img/bgn.svg') }}");
         background-position: center bottom; /* ✅ Centered horizontally */
         background-repeat: no-repeat;
-        background-size:1020px auto;; /* Or use cover/contain as needed */
+        background-size:900px auto; /* Or use cover/contain as needed */
         
         color: var(--text-primary);
         font-family: 'Inter', sans-serif;
@@ -174,7 +174,7 @@
       background-color: #1F1F2E;
       border-radius: 14px;
       overflow: hidden;
-      width: 400px;
+      width: 500px;
       color: #FFF;
       font-family: sans-serif;
     }
@@ -189,7 +189,7 @@
 
     /* content area */
     .participant-card .card-content {
-      padding: 16px;
+      padding: 10px;
       background-color: #1F1F2E;
 
     }
@@ -281,9 +281,9 @@
 
         .voice-control.active .mic-icon {
     filter:
-        drop-shadow(0 0 6px #00ff00)
-        drop-shadow(0 0 12px #00e5ff)
-        drop-shadow(0 0 18px #4bff4e);
+        drop-shadow(0 0 6px #00ff0084)
+        drop-shadow(0 0 12px #00e5ff91)
+        drop-shadow(0 0 18px #4bff4e72);
 }
 
 
@@ -323,7 +323,7 @@
             
 
             .controls{
-                margin-top: 50px;
+                margin-top: 20%;
             }
 
             .header {
@@ -409,13 +409,7 @@
 
         <!-- Controls -->
         <div class="controls">
-            <button class="control-btn" id="exit" aria-label="Exit room">
-                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                </svg>
-            </button>
+
             <button class="control-btn" id="copyBtn" aria-label="Share room">
                 <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                     stroke-linecap="round" stroke-linejoin="round">
@@ -430,6 +424,15 @@
                 <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
                 </svg>
             </button>
+
+            <button class="control-btn" id="exit" aria-label="Exit room">
+                <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                </svg>
+            </button>
+
         </div>
 
 
