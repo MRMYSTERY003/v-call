@@ -17,7 +17,7 @@ let peerConnection;
 const roomId = window.location.pathname.split('/').pop();
 
 // Add this at the top of your main.js
-let currentParticipants = 0;
+let currentParticipants = 1;
 
 // State tracking variables
 let isSettingRemoteAnswer = false;
@@ -57,47 +57,7 @@ const config = {
     ]
 };
 
-// Update status message
-// function updateStatus(iconClass, text, colorClass = 'text-indigo-400') {
-//     status.innerHTML = `
-//         <div class="flex items-center justify-center space-x-2 hidden">
-//             <i class="${iconClass} ${colorClass}"></i>
-//             <span>${text}</span>
-//         </div>
-//     `;
-// }
 
-// Create remote audio element
-// function createRemoteAudioElement(stream, userId) {
-//     const audioElement = document.createElement('audio');
-//     audioElement.srcObject = stream;
-//     audioElement.autoplay = true;
-//     audioElement.controls = false;
-//     audioElement.setAttribute('playsinline', 'true');
-    
-//     const container = document.getElementById("remort-card-content");
-
-//     container.id = `remote-${userId}`;
-    
-//     container.innerHTML = `
-
-//                 <div class="l1">
-//                 <div class="avatar">
-//                     <img src="${profileImgUrl}"   alt="Avatar">
-//                 </div>
-//                 <div class="name">${userId.slice(0, 4)}</div>
-//                 </div>
-//                 <div class="audio-meter">
-//                 <div class="audio-level" id="localAudioLevel" style="width: 70%;"></div>
-//                 </div>
-
-//     `;
-    
-//     container.appendChild(audioElement);
-//     audioElement.play().catch(e => console.log('Audio play error:', e));
-//     visualizeAudio(audioElement, container);
-//     return container;
-// }
 
 
 function createRemoteAudioElement(stream, userId) {
@@ -311,21 +271,25 @@ async function initializeCall() {
         // First check room status
         const response = await fetch(`/check_room/${roomId}`);
         const roomStatus = await response.json();
-        
+        console.log('Room status:', roomStatus);
         if (!roomStatus.can_join) {
             // updateStatus('fas fa-users', 'Room is full (2/2 participants)', 'text-red-400');
             remoteAudioContainer.innerHTML = `
-                <div class="card-inner">
-                        <div class="card-header">Remote</div>
-                        <div class="card-content">
-                            <div class="l1">
-
-                                This room is already full with 2 participants.
-
-                                Try creating a new room or join later.
-                            </div>
-                        </div>
-                </div>
+    <div class="participant-card">
+        <div class="card-inner">
+        <div class="card-header">Remote</div>
+        <div class="card-content">
+            <div class="l1">
+            <div class="avatar">
+                <img src="${profileImgUrl}"  alt="Avatar">
+            </div>
+            <div class="name">Roomfull....</div>
+            </div>
+            <div class="audio-meter">
+            <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
+            </div>
+        </div>
+        </div>
             `;
             return;
         }
@@ -441,10 +405,20 @@ async function initializeCall() {
 socket.on('room_full', () => {
     // updateStatus('fas fa-users', 'Room is full (2/2 participants)', 'text-red-400');
     remoteAudioContainer.innerHTML = `
-        <div class="text-center p-4 bg-gray-700 rounded-lg">
-            <i class="fas fa-users-slash text-red-400 text-4xl mb-2"></i>
-            <p class="text-lg">This room is already full with 2 participants.</p>
-            <p class="text-sm text-gray-300">Try creating a new room or join later.</p>
+    <div class="participant-card">
+        <div class="card-inner">
+        <div class="card-header">Remote</div>
+        <div class="card-content">
+            <div class="l1">
+            <div class="avatar">
+                <img src="${profileImgUrl}"  alt="Avatar">
+            </div>
+            <div class="name">Roomfull....</div>
+            </div>
+            <div class="audio-meter">
+            <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
+            </div>
+        </div>
         </div>
     `;
     
@@ -475,10 +449,21 @@ socket.on('participant_left', (data) => {
     // Show a message if no remote participants remain
     if (currentParticipants === 1) {
         remoteAudioContainer.innerHTML = `
-            <div class="text-center p-4 bg-gray-700 rounded-lg">
-                <i class="fas fa-user-clock text-yellow-400 text-4xl mb-2"></i>
-                <p class="text-lg">Waiting for another participant to join...</p>
+    <div class="participant-card">
+        <div class="card-inner">
+        <div class="card-header">Remote</div>
+        <div class="card-content">
+            <div class="l1">
+            <div class="avatar">
+                <img src="${profileImgUrl}"  alt="Avatar">
             </div>
+            <div class="name">Waiting....</div>
+            </div>
+            <div class="audio-meter">
+            <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
+            </div>
+        </div>
+        </div>
         `;
     }
 
