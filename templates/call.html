@@ -35,7 +35,7 @@
             background-image: url("{{ url_for('static', filename='img/bgn.svg') }}");
             background-position: center bottom; /* ✅ Centered horizontally */
             background-repeat: no-repeat;
-            background-size:900px auto; /* Or use cover/contain as needed */
+            background-size:130vh auto; /* Or use cover/contain as needed */
             
             color: var(--text-primary);
             font-family: 'Inter', sans-serif;
@@ -157,7 +157,7 @@
             display: flex;
             justify-content: center;
             gap: 32px;
-            margin-bottom: 100px;
+            margin-bottom: 10px;
             margin-top: 100px;
         }
 
@@ -307,9 +307,11 @@
             }
 
             .voice-control {
-                width: 80px;
-                height: 80px;
+                width: 200px;
+                height: 200px;
+                bottom: 20px;
             }
+
         }
 
         @media (max-width: 1023px) {
@@ -342,14 +344,14 @@
                 gap: 24px;
             }
             .voice-control {
-                width: 25vw;
-                height: 25vw;
-                bottom: 8vh;
+                width: 200px;
+                height: 200px;
+                bottom: 50px;
             }
 
 
             .voice-control .mic-icon {
-                    width: 200px;
+                width: 200px;
                 height: 200px;
                 transition: filter 0.3s ease;
             }
@@ -380,14 +382,72 @@
         }
 
 
+         @media (max-width: 769px) {
+
+            body {
+                background-image: url("{{ url_for('static', filename='img/ph-bg.svg') }}");         /* Remove background image */
+                background-color: var(--dark-bg); /* Optional: ensure dark background still shows */
+                background-size: cover;   /* fills entire area, may crop */
+                /* background-size: contain;               */
+                background-position: center calc(100% - -150px);
+
+            }
+
+            .controls{
+                margin-top: 8%;
+            }
+
+            .voice-control {
+                width: 150px;
+                height: 150px;
+                bottom: 10px;
+            }
+        
+         }
+
+        @media (max-width: 431px) {
+
+            .voice-control {
+                width: 150px;
+                height: 150px;
+                bottom: 10px;
+            }
+
+            .controls{
+                margin-top: 15%;
+                right: 20px;
+            }
+
+        
+         }
+         
+         @media (max-width: 426px) {
+
+            .voice-control {
+                width: 150px;
+                height: 150px;
+                bottom: 10px;
+            }
+
+            .controls{
+                margin-top: 15%;
+                right: 20px;
+            }
+
+        
+         }
+
+
         @media (max-width: 376px) {
+
+            
+            .participants-container {
+                margin-top: 150px;
+            }
 
             .controls{
                 margin-top: 10%;
-            }
-
-            .participants-container {
-                margin-top: 150px;
+                right: 20px;
             }
 
 
@@ -449,6 +509,30 @@
 
         }
 
+        @media (max-width: 321px) {
+        .controls{
+            margin-top: 15%;
+            position: absolute;
+            right: 5px;
+        }
+
+        .participant-card {
+                margin-top: 20px;
+            width: 250px;
+
+            }
+
+
+        .participant-card .card-inner {
+            background-color: #1F1F2E;
+            border-radius: 14px;
+            overflow: hidden;
+            width: 250px;
+            color: #FFF;
+            font-family: sans-serif;
+            }
+
+    }
 
 
 
@@ -568,13 +652,33 @@
                 document.getElementById('copyBtn').addEventListener('click', () => {
                     const roomId = "{{ room_id }}";
                     const url = `${window.location.origin}/call/${roomId}`;
-                    navigator.clipboard.writeText(url).then(() => {
+                    navigator.clipboard.writeText(url).then( async () => {
                         const copyBtn = document.getElementById('copyBtn');
                         const originalHtml = copyBtn.innerHTML;
                         copyBtn.innerHTML = '<i class="fas fa-check"></i><span>Copied!</span>';
                         setTimeout(() => {
                             copyBtn.innerHTML = originalHtml;
                         }, 2000);
+
+                        const shareData = {
+                            title: 'Join my Walkie Talkie Room',
+                            text: `Room ID: ${roomId}`,
+                            url: `${window.location.origin}/call/${roomId}`
+                            };
+
+                            try {
+                            if (navigator.share) {
+                                await navigator.share(shareData); // ✅ Correct usage
+                            } else {
+                                await navigator.clipboard.writeText(shareData.url);
+                                alert('Sharring not supported, Link copied to clipboard'); // Fallback
+                            }
+                            } catch (err) {
+                            console.error('Sharing not suppoted in this platfrom:', err);
+                            }
+
+
+
                     });
                 });
         
