@@ -14,10 +14,6 @@
 
 
 
-// const socket = io();
-
-
-
 let localStream;
 let peerConnection;
 const roomId = window.location.pathname.split('/').pop();
@@ -585,3 +581,4 @@ function logConnectionTime() {
     connectionStartTime = null;
   }
 }
+
