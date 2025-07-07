@@ -1,4 +1,6 @@
 // // const socket = io();
+
+/*
  const socket = io("https://call-zecx.onrender.com/", {
    transports: ["polling", "websocket"], // allow fallback
    withCredentials: true, // only if your server uses credentials
@@ -12,9 +14,11 @@
    }
  }, 5000);
 
+ */
 
 
-// const socket = io();
+
+const socket = io();
 
 
 
