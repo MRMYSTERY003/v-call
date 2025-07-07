@@ -3,4 +3,4 @@ flask-socketio==5.3.4
 gevent==22.10.2
 gunicorn==21.2.0
 greenlet==3.0.1
-zope.event
+zope.event==5.0
