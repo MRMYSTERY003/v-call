@@ -21,8 +21,6 @@ const socket = io();
 let localStream;
 let peerConnection;
 const roomId = window.location.pathname.split('/').pop();
-const userId = localStorage.getItem('userId') || crypto.randomUUID();
-localStorage.setItem('userId', userId);
 
 let currentParticipants = 0;
 
@@ -39,13 +37,13 @@ const participantCount = document.getElementById('participantCount');
 remoteAudioContainer.innerHTML = `
     <div class="participant-card">
         <div class="card-inner">
-            <div class="card-header">Remote User</div>
+            <div class="card-header">Remote</div>
                 <div class="card-content">
                     <div class="l1">
                         <div class="avatar">
                             <img src="${profileImgUrl}"  alt="Avatar">
                         </div>
-                    <div class="name">Not Connected...</div>
+                    <div class="name">Waiting....</div>
                 </div>
                 <div class="audio-meter">
                     <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
@@ -81,6 +79,7 @@ function createRemoteAudioElement(stream, userId) {
     container.innerHTML = `
         <div class="card-inner">
             <div class="card-header">
+                <span>Participant</span>
                 <span>Remote User</span>
             </div>
             <div class="card-content">
@@ -88,7 +87,7 @@ function createRemoteAudioElement(stream, userId) {
                     <div class="avatar">
                         <img src="${profileImgUrl}" alt="Avatar">
                     </div>
-                    <div class="name">Connected...</div>
+                    <div class="name">Remote User</div>
                 </div>
                 <div class="audio-meter">
                     <div class="audio-level audio-level-${userId}" style="width: 0%; height: 8px; background-color: #22c55e;"></div>
@@ -260,26 +259,21 @@ function setupPushToTalk() {
 async function initializeCall() {
     try {
         // First check room status
-        console.log('Initializing call for room:', roomId);
-        console.log('Checking room status with 5sec delay before initializing call...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
         const response = await fetch(`/check_room/${roomId}`);
         const roomStatus = await response.json();
-        console.log('Room status:', roomStatus);
         
         if (!roomStatus.can_join) {
-            console.warn('Room is full..', roomStatus);
             // updateStatus('fas fa-users', 'Room is full (2/2 participants)', 'text-red-400');
              remoteAudioContainer.innerHTML = `
             <div class="participant-card">
                 <div class="card-inner">
-                    <div class="card-header">Remote User</div>
+                    <div class="card-header">Remote</div>
                     <div class="card-content">
                         <div class="l1">
                             <div class="avatar">
                                 <img src="${profileImgUrl}"  alt="Avatar">
                             </div>
-                            <div class="name">Not Connected....</div>
+                            <div class="name">Roomfull....</div>
                         </div>
                         <div class="audio-meter">
                             <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
@@ -309,7 +303,7 @@ async function initializeCall() {
             if (peerConnection.iceConnectionState === 'disconnected') {
                 // updateStatus('fas fa-exclamation-triangle', 'Disconnected', 'text-red-400');
                 endCall();
-                // location.reload();
+                location.reload();
             }
         };
 
@@ -382,22 +376,11 @@ async function initializeCall() {
 // Add this handler for room full event
 socket.on('room_full', () => {
     remoteAudioContainer.innerHTML = `
-            <div class="participant-card">
-                <div class="card-inner">
-                    <div class="card-header">Remote User</div>
-                    <div class="card-content">
-                        <div class="l1">
-                            <div class="avatar">
-                                <img src="${profileImgUrl}"  alt="Avatar">
-                            </div>
-                            <div class="name">Not Connected....</div>
-                        </div>
-                        <div class="audio-meter">
-                            <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="text-center p-4 bg-gray-700 rounded-lg">
+            <i class="fas fa-users-slash text-red-400 text-4xl mb-2"></i>
+            <p class="text-lg">This room is already full with 2 participants.</p>
+            <p class="text-sm text-gray-300">Try joining later.</p>
+        </div>
     `;
     // Clean up if already started
     endCall();
@@ -428,13 +411,13 @@ socket.on('participant_left', (data) => {
  remoteAudioContainer.innerHTML = `
     <div class="participant-card">
         <div class="card-inner">
-            <div class="card-header">Remote User</div>
+            <div class="card-header">Remote</div>
             <div class="card-content">
                 <div class="l1">
                     <div class="avatar">
                         <img src="${profileImgUrl}"  alt="Avatar">
                     </div>
-                    <div class="name">Not Connected...</div>
+                    <div class="name">Waiting....</div>
                 </div>  
                 <div class="audio-meter">
                     <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
@@ -450,14 +433,7 @@ socket.on('participant_left', (data) => {
 
 // Handle incoming offers
 socket.on('offer', async (data) => {
-
-
     if (data.sender === socket.id) return;
-    const response = await fetch(`/check_room/${roomId}`);
-    const roomStatus = await response.json();
-    
-    if (roomStatus.can_join) {
-    
     try {
         if (!peerConnection) {
             await initializeCall();
@@ -474,17 +450,11 @@ socket.on('offer', async (data) => {
         console.error('Error handling offer:', err);
         // updateStatus('fas fa-exclamation-circle', 'Error handling call', 'text-red-400');
     }
-}
 });
 
 // Handle incoming answers
 socket.on('answer', async (data) => {
     if (data.sender === socket.id || !peerConnection) return;
-
-    const response = await fetch(`/check_room/${roomId}`);
-    const roomStatus = await response.json();
-    
-    if (roomStatus.can_join) {
     
     try {
         if (peerConnection.signalingState !== 'have-local-offer') {
@@ -508,24 +478,17 @@ socket.on('answer', async (data) => {
         console.error('Error handling answer:', err);
         // updateStatus('fas fa-exclamation-circle', 'Error connecting', 'text-red-400');
     }
-}
 });
 
 // Handle ICE candidates
 socket.on('candidate', async (data) => {
     if (data.sender === socket.id || !peerConnection) return;
     
-    const response = await fetch(`/check_room/${roomId}`);
-    const roomStatus = await response.json();
-    
-    if (roomStatus.can_join) {
-
     try {
         await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
     } catch (err) {
         console.error('Error adding ICE candidate:', err);
     }
-}
 });
 
 // Update participant count
@@ -563,7 +526,6 @@ socket.on('connect', () => {
     initializeCall();
 });
 
-// Warn user before leaving
 window.addEventListener('beforeunload', (e) => {
     const message = "Are you sure you want to leave the call?";
     e.preventDefault();
@@ -581,6 +543,8 @@ window.addEventListener('unload', () => {
     }
     socket.emit('leave', { room: roomId });
 });
+
+
 
 const DEBUG = true;
 const DEBUG_PREFIX = "[WebRTC]";
