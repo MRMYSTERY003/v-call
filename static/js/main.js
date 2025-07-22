@@ -260,15 +260,10 @@ function setupPushToTalk() {
 async function initializeCall() {
     try {
         // First check room status
-        console.log('Initializing call for room:', roomId);
-        console.log('Checking room status with 5sec delay before initializing call...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
         const response = await fetch(`/check_room/${roomId}`);
         const roomStatus = await response.json();
-        console.log('Room status:', roomStatus);
         
         if (!roomStatus.can_join) {
-            console.warn('Room is full..', roomStatus);
             // updateStatus('fas fa-users', 'Room is full (2/2 participants)', 'text-red-400');
              remoteAudioContainer.innerHTML = `
             <div class="participant-card">
@@ -581,6 +576,7 @@ window.addEventListener('unload', () => {
     }
     socket.emit('leave', { room: roomId });
 });
+
 
 const DEBUG = true;
 const DEBUG_PREFIX = "[WebRTC]";
