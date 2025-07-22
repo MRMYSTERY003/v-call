@@ -21,11 +21,11 @@ const socket = io();
 let localStream;
 let peerConnection;
 const roomId = window.location.pathname.split('/').pop();
-const userId = localStorage.getItem('userId') || crypto.randomUUID();
-localStorage.setItem('userId', userId);
 
+// Add this at the top of your main.js
 let currentParticipants = 0;
 
+// State tracking variables
 let isSettingRemoteAnswer = false;
 let pendingAnswer = null;
 let isNegotiating = false;
@@ -39,19 +39,19 @@ const participantCount = document.getElementById('participantCount');
 remoteAudioContainer.innerHTML = `
     <div class="participant-card">
         <div class="card-inner">
-            <div class="card-header">Remote User</div>
-                <div class="card-content">
-                    <div class="l1">
-                        <div class="avatar">
-                            <img src="${profileImgUrl}"  alt="Avatar">
-                        </div>
-                    <div class="name">Not Connected...</div>
-                </div>
-                <div class="audio-meter">
-                    <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
-                </div>
+        <div class="card-header">Remote</div>
+        <div class="card-content">
+            <div class="l1">
+            <div class="avatar">
+                <img src="${profileImgUrl}"  alt="Avatar">
+            </div>
+            <div class="name">Waiting....</div>
+            </div>
+            <div class="audio-meter">
+            <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
+            </div>
         </div>
-    </div>`; // Clear remote audio container
+        </div>`; // Clear remote audio container
 
 let pushToTalkActive = false; // Track push-to-talk button state
 // ICE Server Configuration
@@ -65,6 +65,48 @@ const config = {
   iceTransportPolicy: "all",
   bundlePolicy: "max-bundle"
 };
+
+// Update status message
+// function updateStatus(iconClass, text, colorClass = 'text-indigo-400') {
+//     status.innerHTML = `
+//         <div class="flex items-center justify-center space-x-2 hidden">
+//             <i class="${iconClass} ${colorClass}"></i>
+//             <span>${text}</span>
+//         </div>
+//     `;
+// }
+
+// Create remote audio element
+// function createRemoteAudioElement(stream, userId) {
+//     const audioElement = document.createElement('audio');
+//     audioElement.srcObject = stream;
+//     audioElement.autoplay = true;
+//     audioElement.controls = false;
+//     audioElement.setAttribute('playsinline', 'true');
+    
+//     const container = document.getElementById("remort-card-content");
+
+//     container.id = `remote-${userId}`;
+    
+//     container.innerHTML = `
+
+//                 <div class="l1">
+//                 <div class="avatar">
+//                     <img src="${profileImgUrl}"   alt="Avatar">
+//                 </div>
+//                 <div class="name">${userId.slice(0, 4)}</div>
+//                 </div>
+//                 <div class="audio-meter">
+//                 <div class="audio-level" id="localAudioLevel" style="width: 70%;"></div>
+//                 </div>
+
+//     `;
+    
+//     container.appendChild(audioElement);
+//     audioElement.play().catch(e => console.log('Audio play error:', e));
+//     visualizeAudio(audioElement, container);
+//     return container;
+// }
 
 
 function createRemoteAudioElement(stream, userId) {
@@ -81,14 +123,15 @@ function createRemoteAudioElement(stream, userId) {
     container.innerHTML = `
         <div class="card-inner">
             <div class="card-header">
-                <span>Remote User</span>
+                <span>Participant</span>
+                <span>${userId.slice(0, 4)}</span>
             </div>
             <div class="card-content">
                 <div class="l1">
                     <div class="avatar">
                         <img src="${profileImgUrl}" alt="Avatar">
                     </div>
-                    <div class="name">Connected...</div>
+                    <div class="name">${userId.slice(0, 4)}</div>
                 </div>
                 <div class="audio-meter">
                     <div class="audio-level audio-level-${userId}" style="width: 0%; height: 8px; background-color: #22c55e;"></div>
@@ -104,7 +147,6 @@ function createRemoteAudioElement(stream, userId) {
     return container;
 }
 
-
 // Visualize audio levels
 function visualizeAudio(audioElement, container, userId) {
     try {
@@ -113,18 +155,24 @@ function visualizeAudio(audioElement, container, userId) {
         const source = audioContext.createMediaStreamSource(audioElement.srcObject);
         source.connect(analyser);
         analyser.fftSize = 32;
+
         const bufferLength = analyser.frequencyBinCount;
         const dataArray = new Uint8Array(bufferLength);
+
         function update() {
             if (!audioElement.srcObject || audioElement.srcObject.getTracks().length === 0) return;
+
             analyser.getByteFrequencyData(dataArray);
             const level = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
             const levelElement = container.querySelector(`.audio-level-${userId}`);
+
             if (levelElement) {
                 levelElement.style.width = `${Math.min(100, level * 0.8)}%`;
             }
+
             requestAnimationFrame(update);
         }
+
         audioElement.onplaying = update;
     } catch (err) {
         console.error('Audio visualization error:', err);
@@ -140,19 +188,21 @@ function toggleMute(mute) {
     }
 }
 
-
 // Setup push-to-talk
 function setupPushToTalk() {
     const pushToTalkBtn = document.getElementById('pushToTalkBtn');
     if (!pushToTalkBtn) return;
+
     let pushToTalkActive = false;
     let alwaysTransmit = false;
     let lastTap = 0;
+
     const startTransmitting = () => {
         if (!pushToTalkActive && peerConnection && localStream) {
             pushToTalkActive = true;
             toggleMute(false);
             pushToTalkBtn.classList.add('active');
+            // updateStatus('fas fa-microphone', 'Transmitting...', 'text-green-400');
         }
     };
 
@@ -161,6 +211,7 @@ function setupPushToTalk() {
             pushToTalkActive = false;
             toggleMute(true);
             pushToTalkBtn.classList.remove('active');
+            // updateStatus('fas fa-microphone-slash', 'Listening...', 'text-yellow-400');
         }
     };
 
@@ -180,6 +231,7 @@ function setupPushToTalk() {
     pushToTalkBtn.addEventListener('click', (e) => {
         const currentTime = new Date().getTime();
         const tapLength = currentTime - lastTap;
+
         if (tapLength < 300 && tapLength > 0) {
             // Double tap: enable always transmit
             if (!alwaysTransmit) {
@@ -196,7 +248,6 @@ function setupPushToTalk() {
 
         lastTap = currentTime;
     });
-
 
     // Mouse events (only if not in always transmit mode)
     pushToTalkBtn.addEventListener('mousedown', () => {
@@ -216,6 +267,7 @@ function setupPushToTalk() {
     const handleTap = () => {
         const currentTime = new Date().getTime();
         const tapGap = currentTime - lastTapTime;
+
         if (tapGap < 300 && tapGap > 0) {
             // Double tap detected
             clearTimeout(tapTimeout); // Cancel single-tap timeout
@@ -226,9 +278,9 @@ function setupPushToTalk() {
                 if (alwaysTransmit) disableAlwaysTransmit();
             }, 300);
         }
+
         lastTapTime = currentTime;
     };
-    
 
     // Touch events (hold to talk if not always transmit)
     pushToTalkBtn.addEventListener('touchstart', (e) => {
@@ -259,39 +311,40 @@ function setupPushToTalk() {
 // Initialize call
 async function initializeCall() {
     try {
+
+
         // First check room status
-        console.log('Initializing call for room:', roomId);
-        console.log('Checking room status with 5sec delay before initializing call...');
-        await new Promise(resolve => setTimeout(resolve, 5000));
         const response = await fetch(`/check_room/${roomId}`);
         const roomStatus = await response.json();
-        console.log('Room status:', roomStatus);
         
         if (!roomStatus.can_join) {
-            console.warn('Room is full..', roomStatus);
             // updateStatus('fas fa-users', 'Room is full (2/2 participants)', 'text-red-400');
              remoteAudioContainer.innerHTML = `
-            <div class="participant-card">
-                <div class="card-inner">
-                    <div class="card-header">Remote User</div>
-                    <div class="card-content">
-                        <div class="l1">
-                            <div class="avatar">
-                                <img src="${profileImgUrl}"  alt="Avatar">
-                            </div>
-                            <div class="name">Not Connected....</div>
-                        </div>
-                        <div class="audio-meter">
-                            <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
+    <div class="participant-card">
+        <div class="card-inner">
+        <div class="card-header">Remote</div>
+        <div class="card-content">
+            <div class="l1">
+            <div class="avatar">
+                <img src="${profileImgUrl}"  alt="Avatar">
             </div>
+            <div class="name">Roomfull....</div>
+            </div>
+            <div class="audio-meter">
+            <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
+            </div>
+        </div>
+        </div>
             `;
             return;
         }
+
+
+
         localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        
         peerConnection = new RTCPeerConnection(config);
+        
         // State change handlers
         peerConnection.onsignalingstatechange = () => {
             console.log('Signaling state:', peerConnection.signalingState);
@@ -309,7 +362,7 @@ async function initializeCall() {
             if (peerConnection.iceConnectionState === 'disconnected') {
                 // updateStatus('fas fa-exclamation-triangle', 'Disconnected', 'text-red-400');
                 endCall();
-                // location.reload();
+                location.reload();
             }
         };
 
@@ -328,13 +381,25 @@ async function initializeCall() {
                 existing.remove(); // Remove any stale copy
             }
             const container = createRemoteAudioElement(e.streams[0], e.streams[0].id);
-            monitorConnectionQuality();
         };
 
         // Add local tracks
         localStream.getTracks().forEach(track => {
             peerConnection.addTrack(track, localStream);
         });
+
+        // Set up local audio visualization
+        // localAudioContainer.innerHTML = `
+        //     <div class="w-full h-full flex flex-col justify-center items-center">
+        //         <div class="flex items-center space-x-3 mb-2">
+        //             <i class="fas fa-microphone text-green-400"></i>
+        //             <span>You</span>
+        //         </div>
+        //         <div class="w-full bg-gray-600 rounded-full h-2">
+        //             <div class="bg-green-400 h-2 rounded-full local-audio-level"></div>
+        //         </div>
+        //     </div>
+        // `;
         
         const audioContext = new (window.AudioContext || window.webkitAudioContext)();
         const analyser = audioContext.createAnalyser();
@@ -349,7 +414,7 @@ async function initializeCall() {
             analyser.getByteFrequencyData(dataArray);
             const level = dataArray.reduce((a, b) => a + b, 0) / bufferLength;
             const levelElement = document.getElementById('localAudioLevel');
-            // console.log('Local audio level:', level);
+            console.log('Local audio level:', level);
             if (levelElement) {
                 levelElement.style.width = `${Math.min(100, level * 0.8)}%`;
             }
@@ -372,33 +437,26 @@ async function initializeCall() {
         // Initialize push-to-talk
         setupPushToTalk();
         toggleMute(true);
+        // updateStatus('fas fa-microphone-slash', 'Ready - Push to talk', 'text-yellow-400');
         
     } catch (err) {
         console.error('Error initializing call:', err);
+        // updateStatus('fas fa-exclamation-circle', 'Error accessing microphone', 'text-red-400');
     }
 }
 
 
 // Add this handler for room full event
 socket.on('room_full', () => {
+    // updateStatus('fas fa-users', 'Room is full (2/2 participants)', 'text-red-400');
     remoteAudioContainer.innerHTML = `
-            <div class="participant-card">
-                <div class="card-inner">
-                    <div class="card-header">Remote User</div>
-                    <div class="card-content">
-                        <div class="l1">
-                            <div class="avatar">
-                                <img src="${profileImgUrl}"  alt="Avatar">
-                            </div>
-                            <div class="name">Not Connected....</div>
-                        </div>
-                        <div class="audio-meter">
-                            <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <div class="text-center p-4 bg-gray-700 rounded-lg">
+            <i class="fas fa-users-slash text-red-400 text-4xl mb-2"></i>
+            <p class="text-lg">This room is already full with 2 participants.</p>
+            <p class="text-sm text-gray-300">Try creating a new room or join later.</p>
+        </div>
     `;
+    
     // Clean up if already started
     endCall();
 });
@@ -428,40 +486,35 @@ socket.on('participant_left', (data) => {
  remoteAudioContainer.innerHTML = `
     <div class="participant-card">
         <div class="card-inner">
-            <div class="card-header">Remote User</div>
-            <div class="card-content">
-                <div class="l1">
-                    <div class="avatar">
-                        <img src="${profileImgUrl}"  alt="Avatar">
-                    </div>
-                    <div class="name">Not Connected...</div>
-                </div>  
-                <div class="audio-meter">
-                    <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
-                </div>
+        <div class="card-header">Remote</div>
+        <div class="card-content">
+            <div class="l1">
+            <div class="avatar">
+                <img src="${profileImgUrl}"  alt="Avatar">
+            </div>
+            <div class="name">Waiting....</div>
+            </div>  
+            <div class="audio-meter">
+            <div class="audio-level" id="localAudioLevel" style="width: 0%;"></div>
             </div>
         </div>
-    </div>
+        </div>
         `;
     }
 
+    // document.getElementById('roomStatus').textContent = `Participants: ${currentParticipants}/2`;
 });
 
 
 // Handle incoming offers
 socket.on('offer', async (data) => {
-
-
     if (data.sender === socket.id) return;
-    const response = await fetch(`/check_room/${roomId}`);
-    const roomStatus = await response.json();
-    
-    if (roomStatus.can_join) {
     
     try {
         if (!peerConnection) {
             await initializeCall();
         }
+        
         await peerConnection.setRemoteDescription(new RTCSessionDescription(data.offer));
         const answer = await peerConnection.createAnswer();
         await peerConnection.setLocalDescription(answer);
@@ -474,17 +527,11 @@ socket.on('offer', async (data) => {
         console.error('Error handling offer:', err);
         // updateStatus('fas fa-exclamation-circle', 'Error handling call', 'text-red-400');
     }
-}
 });
 
 // Handle incoming answers
 socket.on('answer', async (data) => {
     if (data.sender === socket.id || !peerConnection) return;
-
-    const response = await fetch(`/check_room/${roomId}`);
-    const roomStatus = await response.json();
-    
-    if (roomStatus.can_join) {
     
     try {
         if (peerConnection.signalingState !== 'have-local-offer') {
@@ -508,24 +555,17 @@ socket.on('answer', async (data) => {
         console.error('Error handling answer:', err);
         // updateStatus('fas fa-exclamation-circle', 'Error connecting', 'text-red-400');
     }
-}
 });
 
 // Handle ICE candidates
 socket.on('candidate', async (data) => {
     if (data.sender === socket.id || !peerConnection) return;
     
-    const response = await fetch(`/check_room/${roomId}`);
-    const roomStatus = await response.json();
-    
-    if (roomStatus.can_join) {
-
     try {
         await peerConnection.addIceCandidate(new RTCIceCandidate(data.candidate));
     } catch (err) {
         console.error('Error adding ICE candidate:', err);
     }
-}
 });
 
 // Update participant count
@@ -563,16 +603,8 @@ socket.on('connect', () => {
     initializeCall();
 });
 
-// Warn user before leaving
-window.addEventListener('beforeunload', (e) => {
-    const message = "Are you sure you want to leave the call?";
-    e.preventDefault();
-    e.returnValue = message;
-    return message;
-});
-
-// Actually clean up if user leaves
-window.addEventListener('unload', () => {
+// Handle page refresh or close
+window.addEventListener('beforeunload', () => {
     if (peerConnection) {
         peerConnection.close();
     }
@@ -581,51 +613,3 @@ window.addEventListener('unload', () => {
     }
     socket.emit('leave', { room: roomId });
 });
-
-const DEBUG = true;
-const DEBUG_PREFIX = "[WebRTC]";
-
-let connectionStartTime = null;
-
-function monitorConnectionQuality() {
-  if (!peerConnection) return;
-
-  peerConnection.getStats().then(stats => {
-    stats.forEach(report => {
-      if (report.type === 'candidate-pair' && report.nominated) {
-        const rtt = report.currentRoundTripTime * 1000 || 0;
-        const packetsLost = report.packetsLost || 0;
-        const packetsSent = report.packetsSent || 1;
-        const packetLoss = (packetsLost / packetsSent * 100).toFixed(1);
-        
-        if (DEBUG) console.log(`${DEBUG_PREFIX} Stats - RTT: ${rtt.toFixed(1)}ms, Loss: ${packetLoss}%`);
-        
-        // Update UI with connection stats
-        
-        // Log quality warnings
-        if (rtt > 300) {
-          console.warn(`${DEBUG_PREFIX} High latency: ${rtt.toFixed(1)}ms`);
-        }
-        if (packetLoss > 5) {
-          console.warn(`${DEBUG_PREFIX} High packet loss: ${packetLoss}%`);
-        }
-      }
-    });
-    
-    // Continue monitoring if connected
-    if (peerConnection.iceConnectionState === 'connected') {
-      setTimeout(monitorConnectionQuality, 2000);
-    }
-  }).catch(err => {
-    console.error(`${DEBUG_PREFIX} Stats error:`, err);
-  });
-}
-
-// Calculate and log connection time
-function logConnectionTime() {
-  if (connectionStartTime) {
-    const connectionTime = (Date.now() - connectionStartTime) / 1000;
-    console.log(`${DEBUG_PREFIX} Connection established in ${connectionTime.toFixed(2)} seconds`);
-    connectionStartTime = null;
-  }
-}
