@@ -6,6 +6,7 @@
     <title>E Walkie Talkie - Room</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+  <script src="https://unpkg.com/@daily-co/daily-js"></script>
 
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Audiowide&family=Inconsolata:wght@500&family=Inter:wght@500&family=Orbitron:wght@600&display=swap" rel="stylesheet">
@@ -628,6 +629,20 @@
     </button>
     
     
+    <!-- toast -->
+
+    <div id="toast-container" style="
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        "></div>
+
+
+
     
     <!-- Hidden Controls -->
     <div id="creator-controls" class="hidden"></div>
@@ -693,7 +708,7 @@
 
         </script>
 
-        <script src="/static/js/main.js"></script>
+        <script src="/static/main.js"></script>
 
     </body>
 </html>

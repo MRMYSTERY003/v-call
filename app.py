@@ -1,115 +1,83 @@
-from flask import Flask, render_template, request, jsonify
-from flask_socketio import SocketIO, emit, join_room, leave_room
-import random
-import string
-from collections import defaultdict
+from flask import Flask, render_template, jsonify, request
+import os
+import requests
+import uuid
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret!'
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode="gevent", 
-                  logger=True, ping_timeout=60, ping_interval=25)  # Prevents timeouts
 
-room_participants = defaultdict(set)
+DAILY_API_KEY = os.getenv("DAILY_API_KEY")  # Set this in your environment
+print(f"DAILY_API_KEY: {DAILY_API_KEY}")
+DAILY_API_BASE = "https://api.daily.co/v1"
 
-@app.route('/ping')
-def ping():
-    return "WebSocket OK", 200
+headers = {
+    "Authorization": f"Bearer {DAILY_API_KEY}",
+    "Content-Type": "application/json"
+}
 
-@app.route('/')
+# Serve the main UI
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
+
 
 @app.route('/call/<room_id>')
-def call(room_id):
+def join_room(room_id):
     return render_template('call.html', room_id=room_id)
 
-@app.route('/check_room/<room_id>')
-def check_room(room_id):
-    participants = len(room_participants.get(room_id, set()))
-    return jsonify({
-        'can_join': participants <= 2,
-        'current_participants': participants
-    })
+# ✅ Create a new room dynamically
+@app.route('/create-room', methods=['POST'])
+def create_room():
+    data = request.get_json()
+    room_id = data.get("room_id")
 
-@socketio.on('connect')
-def handle_connect():
-    print("[INFO] Client connected")
+    headers = {
+        "Authorization": f"Bearer {DAILY_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
-@socketio.on('disconnect')
-def handle_disconnect():
-    print("[INFO] Client disconnected")
-    # Clean up any rooms this client was in
-    for room in list(room_participants.keys()):
-        if request.sid in room_participants[room]:
-            room_participants[room].remove(request.sid)
-            emit('participant_left', {'count': len(room_participants[room])}, room=room)
-            if not room_participants[room]:
-                del room_participants[room]
+    payload = {
+        "name": room_id,
+        "properties": {
+            "enable_chat": False,
+            "start_video_off": True,
+            "start_audio_off": False,
+            "enable_knocking": False,
+            "enable_network_ui": False,
+            "max_participants": 2
+        }
+    }
 
-@socketio.on('join')
-def handle_join(data):
-    room = data['room']
-    participants = room_participants.get(room, set())
-    
-    if len(participants) > 2:
-        emit('room_full', {'room': room})
-        return
-    
-    join_room(room)
-    participants.add(request.sid)
-    room_participants[room] = participants
-    
-    print(f"[INFO] Client joined room {room}. Current participants: {len(participants)}")
-    emit('joined', {
-        'room': room,
-        'message': 'You have joined the room',
-        'participant_count': len(participants)
-    }, room=room)
-    
-    # Notify all in room about new participant count
-    emit('participant_update', {'count': len(participants)}, room=room)
+    try:
+        response = requests.post("https://api.daily.co/v1/rooms", json=payload, headers=headers)
 
-@socketio.on('leave')
-def handle_leave(data):
-    room = data['room']
-    leave_room(room)
-    
-    if room in room_participants and request.sid in room_participants[room]:
-        room_participants[room].remove(request.sid)
-        print(f"[INFO] Client left room {room}. Remaining participants: {len(room_participants[room])}")
-        
-        emit('left', {
-            'room': room,
-            'message': 'You have left the room'
-        }, room=room)
-        
-        # Notify remaining participants
-        if room_participants[room]:
-            emit('participant_left', {'count': len(room_participants[room])}, room=room)
+        if response.status_code == 200 or response.status_code == 201:
+            return jsonify({"url": response.json()["url"]})
+        elif response.status_code == 400:  # Already exists
+            return jsonify({"url": f"https://v-call.daily.co/{room_id}"}), 200
         else:
-            del room_participants[room]
+            print(f"Error creating room: {response.status_code} - {response.text}")
+            return jsonify({"error": "Room creation failed"}), 500
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
 
-@socketio.on('offer')
-def handle_offer(data):
-    room = data['room']
-    print(f"[DEBUG] Received offer in room {room}:", data['offer'])
-    emit('offer', {'offer': data['offer'], 'sender': request.sid}, 
-         room=room, include_self=False)
+# ✅ Get room info (e.g., participant count limit)
+@app.route("/room-info/<room_name>")
+def get_room_info(room_name):
+    url = f"{DAILY_API_BASE}/rooms/{room_name}"
+    response = requests.get(url, headers=headers)
 
-@socketio.on('answer')
-def handle_answer(data):
-    room = data['room']
-    print(f"[DEBUG] Received answer in room {room}:", data['answer'])
-    emit('answer', {'answer': data['answer'], 'sender': request.sid}, 
-         room=room, include_self=False)
+    if response.status_code == 200:
+        data = response.json()
+        max_participants = data.get("config", {}).get("max_participants", 2)
+        return jsonify({ "max_participants": max_participants })
+    else:
+        return jsonify({ "error": "Failed to fetch room info", "details": response.text }), 500
 
-@socketio.on('candidate')
-def handle_candidate(data):
-    room = data['room']
-    print(f"[DEBUG] Received candidate in room {room}:", data['candidate'])
-    emit('candidate', {'candidate': data['candidate'], 'sender': request.sid}, 
-         room=room, include_self=False)
+# ✅ (Optional) If you want to return static room always
+@app.route("/get-room")
+def get_static_room():
+    return jsonify({ "url": "https://v-call.daily.co/oo5UVX7GAlMzSysGVKhR" })
 
-if __name__ == '__main__':
-    print("[INFO] Starting server...")
-    socketio.run(app, host="0.0.0.0", debug=False)
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=5000, debug=True)
