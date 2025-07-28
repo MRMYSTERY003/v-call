@@ -277,39 +277,21 @@
     </div>
 
     <script>
-        document.getElementById('createBtn').addEventListener('click', async () => {
-          const inputRoomId = document.getElementById('roomId').value.trim().toUpperCase();
-          let roomId = inputRoomId;
-
-          if (!roomId) {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            roomId = Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-            document.getElementById('roomId').value = roomId;
-          }
-
-          // 🔥 Ask backend to create Daily.co room
-          try {
-            const res = await fetch('/create-room', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ room_id: roomId })
-            });
-
-            const data = await res.json();
-
-            if (res.ok) {
-              // Redirect to your call page
-              window.location.href = `/call/${roomId}`;
+        document.getElementById('createBtn').addEventListener('click', () => {
+            const roomId = document.getElementById('roomId').value.trim().toUpperCase();
+            if (roomId) {
+                window.location.href = `/call/${roomId}`;
             } else {
-              alert(data.error || 'Failed to create room');
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let result = '';
+                for (let i = 0; i < 6; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                document.getElementById('roomId').value = result;
+                window.location.href = `/call/${result}`;
             }
-          } catch (err) {
-            console.error('Room creation error:', err);
-            alert('Server error while creating room');
-          }
         });
 
-        
         document.getElementById('joinBtn').addEventListener('click', () => {
             const roomId = document.getElementById('roomId').value.trim().toUpperCase();
             if (roomId) {
